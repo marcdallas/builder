@@ -1,0 +1,2441 @@
+000100160128-->?A *%CSTD==========================================================*
+000200160128-->?A * Application. : SAM Arcad Sample application                   *
+000300160128-->?A * Component. . : HSR200                        Type: RPG        *
+000400160128-->?A *===============================================================*
+000500160128-->?A * Sub-system . : TRD   Trade                                    *
+000600160128-->?A * Function . . : SAL   Sales                                    *
+000700160128-->?A * Sub-function :                                                *
+000800160128-->?A *%S=============================================================*
+000900160128-->?A * Description of functionalities :                              *
+001000160128-->?A *                                                               *
+001100160128-->?A *                                                               *
+001200160128-->?A *                                                               *
+001300160128-->?A *%E=============================================================*
+001400160128-->?A * AUTHOR:                           00:00                       *
+001500160128-->?A * MODIFS: ** MARY      28/07/2000   12:09 V 1.00.B MR N[00/0506 *
+001600160128-->?A *           CR 00/0122 Sales Order Delivery Details             *
+001700160128-->?A *%ECSTD=========================================================*
+001800888888-->?S *%CSTD===========================================================*
+001900888888-->?S ** Application. : JAD        JAD                                 *
+002000888888-->?S ** Composant. . : HSR200                        Type: RPG        *
+002100888888-->?S **===============================================================*
+002200888888-->?S ** Sous-syst}me :                                                *
+002300888888-->?S ** Fonction . . :                                                *
+002400888888-->?S ** Sous-fonction:                                                *
+002500888888-->?S **%S=============================================================*
+002600888888-->?S ** Description des fonctionnalit{s:                              *
+002700888888-->?S **                                                               *
+002800888888-->?S **                                                               *
+002900888888-->?S **                                                               *
+003000888888-->?S **%E=============================================================*
+003100888888-->?S ** AUTEUR:                          00:00                        *
+003200888888-->?S ** MODIFS: ** JDESROCHES 06/08/2015   :    V 1.03.P    00/       *
+003300888888-->?S **         01 JDESROCHES 06/07/2015 12:40  V 1.03.A    00/       *
+003400888888-->?S *%ECSTD==========================================================*
+003500990122      */TITLE Sales Order Entry / Maintenance / Inquiry
+003600990106      *
+003700990106      * System        : HSV Control & Tracking
+003800990122      * Author        : Bob Lee (Intec Systems)
+003900990106      * Date          : January 1999
+004000990106      *
+004100990106      *================================================================
+004200990106      * Indicator usage:
+004300990219      *  20 - Order Valid for Despatch
+004400990128      *  30 - 45 Input fields- DSPATR.
+004500990128      *  62 - Control display/non-display of F10-Update.
+004600990210      *  75 - 78 Program mode - Dispatch/Entry/Inquiry/Maintenance
+004700990128      *  79 - MSGSFL (SFLCLR ETC...).
+004800990106      *  99 - General CHAIN/SETLL result.
+004900990106      *
+005000990106      *================================================================
+005100990106      * Maintenance   :
+005200990106      * Fix/Chg Ref. Date       Description.
+005300990106      * ------------ ---------- -----------------------------------
+005400990106      *================================================================
+005500990222     H            Y
+005600990125     FHSLCUSTBIF  E           K        DISK
+005700990125     F            HSFCUST                           KRENAMEHSFCUSTB
+005800990125      * Customer Master by Post Code.
+005900990125      *
+006000990122     FHSLCUSTAIF  E           K        DISK
+006100990125      * Customer Master by Customer Account.
+006200990106      *
+006300990318     F*LTCUSTAIF  E           K        DISK
+006400990318     F*           HSFCUST                           KRENAMEALTCUSTF
+006500990216      * Customer Master by Customer Account.
+006600990216      *
+006700990122     FHSLORDPAIF  E           K        DISK
+006800990122      * Sales Order Parameters.
+006900990114      *
+007000990128     FHSLTRACBUF  E           K        DISK
+007100990203      * Voucher Tracking by Product/Series/Serial No./Element No.
+007200990302      *
+007300990302     FHSLEXPAAUF  E           K        DISK                      A    UC
+007400990302      * Unbanded Order line file by Product/Series/Serial No.
+007500990122      *
+007600990127     FHSLVCTLAUF  E           K        DISK
+007700990122      * Voucher Control.
+007800990122      *
+007900990223     FHSLVXRFBIF  E           K        DISK
+008000990122      * Agency Product Cross-Reference.
+008100990122      *
+008200990203     FHSLORDHAUF  E           K        DISK                      A
+008300990122      * Sales Order Header.
+008400990122      *
+008500990211     FHSLORDDBUF  E           K        DISK                      A
+008600990122      * Sales Order Detail.
+008700990122      *
+008800990204     FHSLODELAUF  E           K        DISK                      A
+008900990122      * Sales Order Delivery Detail.
+009000990122      *
+009100990125     FHSLSHPOAIF  E           K        DISK
+009200990122      * Ship Only.
+009300990302      *
+009400990128     FHSLINVMAUF  E           K        DISK
+009500990122      * Inventory Master.
+009600990122      *
+009700990125     FHSLWHSEAIF  E           K        DISK
+009800990122      * Warehouse Master.
+009900990122      *
+010000990125     FHSLCOMPAIF  E           K        DISK
+010100990122      * Company Master.
+010200990122      *
+010300990126     FHSLPRODAIF  E           K        DISK
+010400990122      * Product Master.
+010500990122      *
+010600990215     FHSLDISCAIF  E           K        DISK
+010700990215      * Customer Discount File
+010800990215      *
+010900990217BL   FHSPINVT UF  E           K        DISK                      A
+011000990122      * Inventory Transactions.
+011100990122      *
+011200060315BL   FARTICLE IF  E           K        DISK
+011300060315      * FOR ARTCILE XREF
+011400060315      *
+011500990122     FHSS200  CF  E                    WORKSTN      KINFDS INFDS
+011600000728     F                                        RRNX  KSFILE HSS200C
+011700990106      * Screen file.
+011800990106      *================================================================
+011900990107      * Arrays.
+012000990107      *
+012100990215      * Days in Month for date validation.
+012200990215     E                    DIM    12  12  2 0
+012300990107      *================================================================
+012400990301      * Data Structures.
+012500990106      *
+012600990106      * Screen Information DS.
+012700990106     IINFDS       DS
+012800990106     I                                      369 369 KEY
+012900990127     I                                    B 370 3710CSRLOC
+013000990106      *
+013100000728     IXXXSDS     SDS                            429
+013200000728     I                                     *PROGRAM XPGMID
+013300000728     I                                      244 253 XJOBNO
+013400000728     I                                      254 263 XUSRID
+013500990125      *
+013600990121      * General DDMMCCYY date format.
+013700990121     I            DS
+013800990204     I I                                      1   20DD
+013900990204     I I                                      3   40MM
+014000990204     I I                                      5   60CC
+014100990204     I I                                      7   80YY
+014200990125     I                                        1   80DMCY
+014300990128      *
+014400990128      * General CCYYMMDD date format.
+014500990128     I            DS
+014600990204     I I                                      1   20CCC
+014700990204     I I                                      3   40YYY
+014800990204     I I                                      5   60MMM
+014900990204     I I                                      7   80DDD
+015000990128     I                                        1   80CYMD
+015100990106      *
+015200990128      * Input order date format.
+015300990125     I            DS
+015400990126     I I                                      1   20JDD
+015500990126     I I                                      3   40JMM
+015600990126     I I                                      5   60JCC
+015700990126     I I                                      7   80JYY
+015800000728     I                                        1   80XJORDD
+015900990125      *
+016000990128      * Output order date format.
+016100990128     I            DS
+016200990204     I I                                      1   20WKC
+016300990204     I I                                      3   40WKY
+016400990204     I I                                      5   60WKM
+016500990204     I I                                      7   80WKD
+016600990128     I                                        1   80WKORDD
+016700990128      *
+016800990106      *----------------------------------------------------------------
+016900990106      * Constants.
+017000990106      *
+017100990106      * Named hexidecimal constants for function keys.
+017200990106     I              X'33'                 C         F03
+017300990106     I              X'34'                 C         F04
+017400990106     I              X'36'                 C         F06
+017500990219     I              X'37'                 C         F07
+017600990203     I              X'3A'                 C         F10
+017700990106     I              X'3B'                 C         F11
+017800990113     I              X'3C'                 C         F12
+017900990119      *
+018000990119      * Zeros to "SETOF" error indicators.
+018100000728     I              '0000000000000000000' C         XZEROS
+018200990106      *
+018300990106      *================================================================
+018400990106      * M A I N L I N E
+018500990106      *================================================================
+018600990210      *
+018700990210      * Dispatch mode
+018800000728     C           YMODE     IFEQ 'D'
+018900990210     C                     MOVEL*ON       *IN75
+019000990210     C                     ELSE
+019100990210     C                     MOVEL*OFF      *IN75
+019200990210     C                     ENDIF
+019300060315     C                     READ ARTICLE                  99
+019400990210      *
+019500990210      * Entry mode
+019600000728     C           YMODE     IFEQ 'E'
+019700990210     C                     MOVEL*ON       *IN76
+019800990210     C                     ELSE
+019900990210     C                     MOVEL*OFF      *IN76
+020000990210     C                     ENDIF
+020100990120      *
+020200990203      * Inquiry mode
+020300000728     C           YMODE     IFEQ 'I'
+020400990203     C                     MOVEL*ON       *IN77
+020500990203     C                     ELSE
+020600990203     C                     MOVEL*OFF      *IN77
+020700990203     C                     ENDIF
+020800990205      *
+020900990205      * Maintenance mode
+021000000728     C           YMODE     IFEQ 'M'
+021100990205     C                     MOVEL*ON       *IN78
+021200990205     C                     ELSE
+021300990205     C                     MOVEL*OFF      *IN78
+021400990205     C                     ENDIF
+021500990205      *
+021600990203      * Program mode
+021700990226     C           START     TAG
+021800000728     C           YMODE     IFEQ 'I'
+021900000728     C           YMODE     OREQ 'D'
+022000000728     C           YMODE     OREQ 'M'
+022100000728     C           YORDNO    IFNE *BLANKS
+022200000728     C                     MOVELYORDNO    XJSORD
+022300000728     C                     MOVELYORDNO    WKORDN  80
+022400990203     C           WKORDN    CHAINHSLORDHA             99
+022500990203     C                     ENDIF
+022600990203     C                     ENDIF
+022700990203      *
+022800000728     C           YMODE     IFEQ 'D'
+022900000728     C                     MOVE JTYPE     XJTYPE
+023000000728     C                     MOVE JCUST     XJCUST
+023100990219     C                     Z-ADDJORDD     WKORDD
+023200990219     C                     Z-ADDWKC       JCC
+023300990219     C                     Z-ADDWKY       JYY
+023400990219     C                     Z-ADDWKM       JMM
+023500990219     C                     Z-ADDWKD       JDD
+023600000728     C                     MOVE JORDR     XJORDR
+023700000728     C                     MOVE JSORD     XJSORD
+023800990219     C           JSTAT     IFEQ 'A'
+023900990219     C           JSTAT     OREQ ' '
+024000990219     C                     MOVE *ON       *IN20
+024100990219     C                     ELSE
+024200990219     C                     MOVE *OFF      *IN20
+024300990219     C                     MOVEL'HSV2015' P0MSID
+024400000728     C                     EXSR YSNDMG
+024500990219     C                     ENDIF
+024600990216     C           JCUST     CHAINHSLCUSTA             13
+024700000728     C                     MOVE EPCDE     XJPCDE
+024800000728     C                     MOVE ENAM1     XENAM1
+024900990216     C           JSORD     SETLLHSLORDDB
+025000990216     C           JSORD     READEHSLORDDB                 99
+025100990216     C           *IN99     DOWEQ*OFF
+025200000728     C                     ADD  KQTYN     XVQTY
+025300990216     C           JSORD     READEHSLORDDB                 99
+025400990216     C                     ENDDO
+025500000728     C                     Z-ADDKDISP     XJDISP
+025600990216     C                     ELSE
+025700000728     C                     EXSR YCLRSC
+025800990216     C                     ENDIF
+025900990219      *
+026000990225      * Dispatch mode.
+026100000728XXX  C           YMODE     IFEQ 'D'
+026200990225XXX  C           JSORD     CHAINHSLODELA             99
+026300990225XXX  C           VNAM1     IFEQ *BLANKS
+026400000728XXX  C                     MOVELENAM1     XXNAM1    P
+026500000728XXX  C                     MOVELENAM2     XXNAM2    P
+026600000728XXX  C                     MOVELEADR1     XXADR1    P
+026700000728XXX  C                     MOVELEADR2     XXADR2    P
+026800990225XXX  C                     ELSE
+026900000728XXX  C                     MOVELVNAM1     XXNAM1    P
+027000000728XXX  C                     MOVE *BLANKS   XXNAM2
+027100000728XXX  C                     MOVELVADR1     XXADR1    P
+027200000728XXX  C                     MOVELVADR2     XXADR2    P
+027300990225XXX  C                     ENDIF
+027400990225XXX  C                     ENDIF
+027500990225      *
+027600990225      * Dispatch, or Inquiry, or Maintenance mode.
+027700000728XXX  C           YMODE     IFEQ 'I'
+027800000728XXX  C           YMODE     OREQ 'D'
+027900000728XXX  C           YMODE     OREQ 'M'
+028000000728XXX  C                     MOVELYCUST     XJCUST
+028100000728XXX  C                     MOVELYTYPE     XJTYPE
+028200990225XXX  C                     ENDIF
+028300990219     C           HDR       TAG
+028400990225XXX  C                     MOVE *OFF      *IN47
+028500990122      * Display screen to receive Customer No. until F03/F10
+028600990128     C           KEY       DOUEQF03
+028700990122     C           KEY       OREQ F10
+028800000728     C           XERROR    ANDEQXNO
+028900990121      *
+029000990302      * Exit if F03 pressed.
+029100990302     C           KEY       IFEQ F03
+029200990302     C                     MOVE *ON       *INLR
+029300990302     C                     LEAVE
+029400990302     C                     ENDIF
+029500990302      *
+029600990121      * Display messages.
+029700990121     C                     WRITEMSGCTL
+029800990121      *
+029900000728     C                     TIME           XXTME
+030000990122     C                     EXFMTHSS200A
+030100990225      *
+030200000728ZZZ  C           XJTYPE    CHAINHSLORDPA             99
+030300990302ZZZ  C           MSALE     IFEQ 'C'
+030400990302ZZZ  C                     MOVE *ON       *IN30
+030500000728ZZZ  C                     MOVE XYES      XERROR
+030600990302ZZZ  C                     MOVEL'HSV2027' P0MSID
+030700000728ZZZ  C                     EXSR YSNDMG
+030800990302ZZZ  C                     ITER
+030900990302ZZZ  C                     ENDIF
+031000990302      *
+031100000728XXX  C                     CLEARXVQTY
+031200990225XXX  C           *IN20     IFEQ *OFF
+031300000728XXX  C           YMODE     ANDEQ'D'
+031400990225XXX  C                     ITER
+031500990225XXX  C                     ENDIF
+031600990225      *
+031700990217BL   C                     Z-ADD1         RCDNBR
+031800990121      *
+031900990121      * Clear messages.
+032000000728     C                     EXSR YCLRMG
+032100990120      *
+032200990120      * Process the various function keys available on the screen.
+032300990219      *
+032400990219      * Process Despatch if F07 pressed.
+032500990226     C           KEY       IFEQ F07
+032600990226      *
+032700990226      * Validate that Order Type is a valid Type.
+032800000728     C           XJTYPE    CHAINHSLORDPA             99
+032900990226     C           *IN99     IFEQ *ON
+033000990226     C                     MOVE *ON       *IN30
+033100000728     C                     MOVE XYES      XERROR
+033200990226     C                     MOVEL'HSV2001' P0MSID
+033300000728     C                     EXSR YSNDMG
+033400990226     C                     GOTO START
+033500990226     C                     ENDIF
+033600990226     C                     ENDIF
+033700990219      *
+033800000728     C           YMODE     IFEQ 'D'
+033900000728     C           WKORDN    ANDNEXJSORD
+034000000728     C                     MOVELXJSORD    WKORDN  80
+034100000728     C           XJSORD    CHAINHSLORDHA             99
+034200990219     C           *IN99     IFEQ *ON
+034300990219     C                     MOVE *OFF      *IN20
+034400990219     C                     MOVEL'HSV2017' P0MSID
+034500000728     C                     EXSR YSNDMG
+034600990219     C                     ELSE
+034700000728     C                     MOVE JTYPE     XJTYPE
+034800000728     C                     MOVE JCUST     XJCUST
+034900990219     C                     Z-ADDJORDD     WKORDD
+035000990219     C                     Z-ADDWKC       JCC
+035100990219     C                     Z-ADDWKY       JYY
+035200990219     C                     Z-ADDWKM       JMM
+035300990219     C                     Z-ADDWKD       JDD
+035400000728     C                     MOVE JORDR     XJORDR
+035500000728     C                     MOVE JSORD     XJSORD
+035600990219     C           JSTAT     IFEQ 'A'
+035700990219     C           JSTAT     OREQ ' '
+035800990219     C                     MOVE *ON       *IN20
+035900990219     C                     ELSE
+036000990219     C                     MOVE *OFF      *IN20
+036100990219     C                     MOVEL'HSV2015' P0MSID
+036200000728     C                     EXSR YSNDMG
+036300990219     C                     ENDIF
+036400990219     C                     ENDIF
+036500990219     C           JCUST     CHAINHSLCUSTA             13
+036600000728     C                     MOVE EPCDE     XJPCDE
+036700000728     C                     MOVE ENAM1     XENAM1
+036800990219     C           JSORD     SETLLHSLORDDB
+036900990219     C           JSORD     READEHSLORDDB                 99
+037000990219     C           *IN99     DOWEQ*OFF
+037100000728     C                     ADD  KQTYN     XVQTY
+037200990219     C           JSORD     READEHSLORDDB                 99
+037300990219     C                     ENDDO
+037400000728     C                     Z-ADDKDISP     XJDISP
+037500990222     C                     GOTO HDR
+037600990219     C                     ENDIF
+037700990204      *
+037800990211      * Program in inquiry, dispatch or maintenance mode
+037900000728     C           YMODE     IFEQ 'I'
+038000000728     C           YMODE     OREQ 'M'
+038100000728     C           YMODE     OREQ 'D'
+038200990204      *
+038300990204      * Initialise subfile
+038400990215     C                     MOVEA'1001'    *IN,70
+038500990204     C                     WRITEHSS200B
+038600000728     C           XJSORD    IFNE 0
+038700000728     C                     Z-ADD0         RRNX
+038800000728     C           XJSORD    SETLLHSLORDDB
+038900990204     C           *IN97     DOUEQ*ON
+039000000728     C           XJSORD    READEHSLORDDB                 97
+039100990204      *
+039200990204      * Build subfile from existing order.
+039300990204     C           *IN97     IFEQ *OFF
+039400000728     C                     ADD  1         RRNX
+039500000728     C           RRNX      CHAINHSS200C              99
+039600000728     C                     Z-ADDKLINE     XOLIN
+039700000728     C                     MOVELKLTYP     XSELC
+039800000728     C                     MOVELKPROD     XKPROD
+039900000728     C                     MOVELKDESC     XNDESC
+040000000728     C                     MOVELKSERC     XKSERC
+040100000728     C                     Z-ADDKSERNF    XKSERF
+040200000728     C                     Z-ADDKSERNT    XKSERT
+040300000728     C                     Z-ADDKQTYN     XKQTYN
+040400000728     C                     Z-ADDKPRIC     XKPRIC
+040500000728     C                     Z-ADDKVALU     XKVALU
+040600000728XXX  C                     MOVE XKQTYN    XXQTYN
+040700990218BL    *
+040800990218BL    * Ship Only - set line value to zero.
+040900990218BL   C           SHONLY    IFEQ 'Y'
+041000000728BL   C           XSELC     ANDEQ'S'
+041100000728BL   C                     Z-ADD0         XKVALU
+041200990218BL   C                     ENDIF
+041300990218BL    *
+041400000728BL   C*          #KVALU    MULT MVATP     #KVATA
+041500990204      *
+041600990204      * Extended value
+041700000728     C           XSELC     IFEQ 'S'
+041800000728     C           XSELC     OREQ 'N'
+041900000728     C           XKPRIC    MULT XKQTYN    XKVALU
+042000990218BL    *
+042100990218BL    * Ship Only - set line value to zero.
+042200990218BL   C           SHONLY    IFEQ 'Y'
+042300000728BL   C           XSELC     ANDEQ'S'
+042400000728BL   C                     Z-ADD0         XKVALU
+042500990218BL   C                     ENDIF
+042600990218BL    *
+042700000728BL   C*          #KVALU    MULT MVATP     #KVATA
+042800990215      *
+042900990204     C                     ENDIF
+043000990204      *
+043100990215      * Write subfile record.
+043200990215     C           *IN99     IFEQ *OFF
+043300990215     C                     UPDATHSS200C
+043400990215     C                     ELSE
+043500990215     C                     WRITEHSS200C
+043600990215     C                     ENDIF
+043700990204     C                     ENDIF
+043800990204     C                     ENDDO
+043900990204     C                     ENDIF
+044000990204     C                     LEAVE
+044100990204     C                     ENDIF
+044200990215      *
+044300990215      * Program mode - Entry
+044400000728     C           YMODE     IFEQ 'E'
+044500990120      *
+044600990120      * Execute search if F04 pressed.
+044700990128     C           KEY       IFEQ F04
+044800000728     C                     EXSR YSERCH
+044900990225XXX  C                     ITER
+045000000728XXX  C                     EXSR YCLRMG
+045100990128     C                     ENDIF
+045200990121      *
+045300990122      * Validate header screen fields.
+045400990122     C                     EXSR VALIDH
+045500990121      *
+045600990122      * Validate ship only requirements.
+045700990122     C                     EXSR SHPONL
+045800990106      *
+045900990204     C                     ENDIF
+046000990225      *
+046100990225      * Process Despatch if F07 pressed.
+046200990225RT   C           KEY       IFEQ F07
+046300990225      *
+046400990225RT   C                     LEAVE
+046500990225RT   C                     ENDIF
+046600990225      *
+046700990122      * End of DO loops for F03/F10 key checks.
+046800990128     C                     ENDDO
+046900990302     C                     MOVE *OFF      *IN61
+047000990106      *
+047100990127      * Clear messages.
+047200000728     C                     EXSR YCLRMG
+047300990204      *
+047400990204      * Exit if F03 pressed.
+047500990204     C           KEY       IFEQ F03
+047600990204      * Exit program.
+047700990204     C                     MOVE *ON       *INLR
+047800990204     C                     RETRN
+047900990204     C                     ENDIF
+048000990127      *
+048100990128      *-------------------------------------------------------
+048200990215      *
+048300990215      * Program mode - Entry
+048400990128      * Retrieve order number.
+048500000728     C           YMODE     IFEQ 'E'
+048600000728     C           *NAMVAR   DEFN HSAORDERNOORDERX  80
+048700000728     C           *LOCK     IN   ORDERX
+048800000728     C                     ADD  1         ORDERX
+048900000728     C                     OUT  ORDERX
+049000000728     C                     Z-ADDORDERX    XJSORD
+049100990204     C                     ENDIF
+049200990128      *
+049300990122      * Display screen to receive Order Details until F10/F12
+049400990127     C           DET       TAG
+049500990204      *
+049600990215      * Program in inquiry, or dispatch, or maintenance mode
+049700000728     C           YMODE     IFEQ 'I'
+049800000728     C           YMODE     OREQ 'M'
+049900000728     C           YMODE     OREQ 'D'
+050000990205     C           KEY       OREQ F12
+050100990205     C                     MOVEL*OFF      *IN73
+050200990205     C                     ELSE
+050300990205     C                     MOVEL*ON       *IN73
+050400990204     C                     ENDIF
+050500990204      *
+050600990128     C           KEY       DOUEQF10
+050700000728     C           XERROR    ANDEQXNO
+050800990126     C           KEY       OREQ F12
+050900990122      *
+051000990122      * Display messages.
+051100990122     C                     WRITEMSGCTL
+051200990122      *
+051300990211      * Read subfile to accumulate order value.
+051400000728     C           RRNX      IFGT 0
+051500990211     C                     Z-ADD1         RRNVAL
+051600000728     C                     Z-ADD0         XKTVAL
+051700990211     C           *IN98     DOUEQ*ON
+051800990217BL   C           RRNVAL    OREQ 100
+051900000728BL   C           XSELC     OREQ *BLANK
+052000990211     C           RRNVAL    CHAINHSS200C              98
+052100000728     C           XSELC     IFNE *BLANK
+052200000728     C           XKPROD    ANDNE*BLANK
+052300990211     C           *IN98     ANDEQ*OFF
+052400000728     C           XSELC     ORNE *BLANK
+052500000728     C           XNDESC    ANDNE*BLANK
+052600990211     C           *IN98     ANDEQ*OFF
+052700000728     C                     ADD  XKVALU    XKTVAL
+052800990211     C                     ENDIF
+052900990211     C                     ADD  1         RRNVAL
+053000990211     C                     ENDDO
+053100990211     C                     ENDIF
+053200990225      *
+053300990225      * Dispatch mode.
+053400000728XXX  C           YMODE     IFEQ 'D'
+053500000728XXX  C           XJCUST    CHAINHSLCUSTA             99
+053600990225XXX   * ...load Customer record into screen 2 fields.
+053700000728XXX  C                     MOVELENAM1     XJNAM1           Name 1
+053800000728XXX  C                     MOVELENAM2     XJNAM2           Name 2
+053900000728XXX  C                     MOVELEADR1     XJADR1           Address 1
+054000000728XXX  C                     MOVELEADR2     XJADR2           Address 2
+054100990225XXX  C                     ENDIF
+054200990225      *
+054300990211      *
+054400990211      * Display footer.
+054500990225RT   C           KEY       IFNE F07
+054600990127     C                     WRITEHSS200E
+054700990225RT   C                     ENDIF
+054800990204      *
+054900000728     C                     TIME           XXTME
+055000990205     C                     MOVEA'011'     *IN,70
+055100990204      *
+055200990225RT   C           KEY       IFNE F07
+055300990127     C                     EXFMTHSS200B
+055400000728XXX  C                     MOVE XNO       XJUMP1
+055500990302      *
+055600990302     C           KEY       IFNE F10
+055700000728     C                     EXSR YDELT
+055800990302     C                     ENDIF
+055900990302      *
+056000990302RT   C                     ENDIF
+056100990302      *
+056200990127     C                     MOVEL*OFF      *IN73
+056300990302     C                     MOVEL*OFF      *IN86
+056400990122      *
+056500990223OWE   * Clear messages (Only if an error has not been repeated)
+056600990223      *
+056700000728OWE  C           XERROR    IFEQ XNO
+056800990122      * Clear messages.
+056900000728     C                     EXSR YCLRMG
+057000990223OWE  C                     ENDIF
+057100990122      *
+057200990122      * Process the various function keys available on the screen.
+057300990302      *
+057400990122      * Exit if F12 pressed.
+057500990128     C           KEY       IFEQ F12
+057600990127     C                     GOTO HDR
+057700990128     C                     ENDIF
+057800990122      *
+057900990122      * Execute search if F04 pressed.
+058000990128     C           KEY       IFEQ F04
+058100000728     C                     EXSR YSERSF
+058200990126     C                     ITER
+058300990128     C                     ENDIF
+058400990122      *
+058500990122      * Check for agency cross-references.
+058600990217BL   C           MXREF     IFEQ 'Y'
+058700990122     C                     EXSR AGXREF
+058800990217BL   C                     ENDIF
+058900990122      *
+059000990223OWE   * Validate order detail screen fields (only re-validate data
+059100990223OWE   * if it has been changed. Otherwise re-display error message).
+059200000728OWE  C           XERROR    IFEQ XYES
+059300990223OWE  C           RRNS      CHAINHSS200C              98
+059400000728OWE  C           XSELC     IFNE TSELC
+059500000728OWE  C           XKPROD    ORNE TPROD
+059600000728OWE  C           XKPRIC    ORNE TPRIC
+059700000728OWE  C           XKQTYN    ORNE TQTYN
+059800000728OWE  C           XNDESC    ORNE TDESC
+059900990223OWE  C                     MOVE *ON       *IN93
+060000990223OWE  C                     ENDIF
+060100990223OWE  C                     ENDIF
+060200990225      *
+060300990223OWE  C           *IN93     IFEQ *ON
+060400000728     C           XERROR    OREQ XNO
+060500990223      *
+060600990223      * Validate order detail screen fields.
+060700990223     C                     EXSR VALIDD
+060800990223OWE  C                     ENDIF
+060900990122      *
+061000990122      * Discount retrieval.
+061100990122     C                     EXSR DISCNT
+061200990122      *
+061300990122      * Stock allocation preview
+061400990122      *                 - with banded allocation and manual allocation.
+061500990223BL   C*          MSALE     IFEQ 'S'
+061600990223     C*                    EXSR ALLOCS
+061700990223BL   C*                    ENDIF
+061800990122      *
+061900990302      * Process Dispatch if F07 pressed.
+062000990225RT   C           KEY       IFEQ F07
+062100990225      *
+062200990225RT   C                     LEAVE
+062300990225RT   C                     ENDIF
+062400990225      *
+062500990122      * End of DO loops for F10/F12 key checks.
+062600990128     C                     ENDDO
+062700990122      *
+062800990122      *-------------------------------------------------------
+062900990122      * Confirm order - prompt for delivery details.
+063000990122      *               - file updates when F10 pressed.
+063100990128     C           KEY       DOUEQF10
+063200000728     C           XERROR    ANDEQXNO
+063300990127     C           KEY       OREQ F12
+063400990127      *
+063500990127      * Clear messages.
+063600000728     C                     EXSR YCLRMG
+063700990127      *
+063800990127      * Process the various function keys available on the screen.
+063900990127      *
+064000990127      * Exit if F12 pressed.
+064100990223OOO  C*          KEY       IFEQ F12
+064200990223OOO  C*                    GOTO DET
+064300990223OOO  C*                    ENDIF
+064400990122      *
+064500990122      * Check for minimum order value.
+064600990225RT   C           KEY       IFNE F07
+064700990127     C           MORDV     IFGT 0
+064800990122     C                     EXSR MINVAL
+064900990127     C                     ENDIF
+065000990225      *
+065100990225XXX   * Credit limit check.... Warning only.
+065200000728XXX  C           XKTVAL    ADD  XJTYSL    TOT    205
+065300000728XXX  C           TOT       IFGT XJCLIM
+065400990225XXX  C                     MOVE *ON       *IN46
+065500990225XXX  C                     MOVEL'HSV2019' P0MSID
+065600000728XXX  C                     EXSR YSNDMG
+065700990225XXX  C                     ENDIF
+065800990225RT   C                     ENDIF
+065900990225      *
+066000990122      * Display messages.
+066100990122     C                     WRITEMSGCTL
+066200990127      *
+066300990128      * Display key text footer.
+066400990225XXXM C*                    WRITEHSS200E
+066500990225RT   C           KEY       IFNE F07
+066600990225XXXM C                     WRITEHSS200F
+066700990225RT   C                     ENDIF
+066800990122      *
+066900990128      * Delivery address prompt screen.
+067000000728     C                     TIME           XXTME
+067100990204      *
+067200990211      * Program in inquiry, dispatch or maintenance mode
+067300000728     C           YMODE     IFEQ 'I'
+067400000728     C           YMODE     OREQ 'M'
+067500000728     C           YMODE     OREQ 'D'
+067600990204     C           WKORDN    CHAINHSLODELA             99
+067700990204      *
+067800990204      * Write fields for order delivery detail record.
+067900990204     C           *IN99     IFEQ *OFF
+068000000728     C                     MOVELVNAM1     XVNAM1
+068100000728     C                     MOVELVADR1     XVADR1
+068200000728     C                     MOVELVADR2     XVADR2
+068300000728     C                     MOVELVADR3     XVADR3
+068400000728     C                     MOVELVPCDE     XVPCDE
+068500000728     C                     MOVELVDIN1     XVDIN1
+068600000728     C                     MOVELVDIN2     XVDIN2
+068700000728     C                     MOVELVDIN3     XVDIN3
+068800990204     C                     ENDIF
+068900990204     C                     ENDIF
+069000990204      *
+069100990204      * Write order delivery details record.
+069200990225RT   C           KEY       IFNE F07
+069300990127     C                     EXFMTHSS200D
+069400990225RT   C                     ENDIF
+069500990223      *
+069600990223OWE   * Exit if F12 pressed.
+069700990223OWE  C           KEY       IFEQ F12
+069800000728     C                     EXSR YDELT
+069900990223OWE  C                     GOTO DET
+070000990223OWE  C                     ENDIF
+070100990122      *
+070200990122      * Clear messages.
+070300990225XXX  C           *IN47     IFEQ *OFF
+070400000728     C                     EXSR YCLRMG
+070500990225XXX  C                     ENDIF
+070600990122      *
+070700990128      * Update all files, if no errors exist.
+070800990201     C           KEY       IFEQ F10
+070900000728     C           XERROR    ANDEQXNO
+071000990225RT   C           KEY       OREQ F07
+071100000728     C                     Z-ADD1         RRNX
+071200990217     C           *IN98     DOUEQ*ON
+071300000728BL   C           RRNX      OREQ 100
+071400000728BL   C           XSELC     OREQ *BLANK
+071500000728     C           RRNX      CHAINHSS200C              98
+071600000728     C           XSELC     IFNE *BLANK
+071700000728     C           XKPROD    ANDNE*BLANK
+071800990211     C           *IN98     ANDEQ*OFF
+071900000728     C           XSELC     ORNE *BLANK
+072000000728     C           XNDESC    ANDNE*BLANK
+072100990211     C           *IN98     ANDEQ*OFF
+072200990225      *
+072300990225      * Save RRN for current order line.
+072400000728     C                     Z-ADDRRNX      RRNLIN
+072500990223      *
+072600990225OWE   * Update Voucher Control if in entry mode....
+072700000728OWE  C           YMODE     IFEQ 'E'
+072800990223BL   C           MSALE     ANDEQ'S'
+072900990223OWE  C                     EXSR UPPVCT
+073000990223OWE  C                     ENDIF
+073100990223      *
+073200990225      * Re-position to required subfile line
+073300000728     C                     Z-ADDRRNLIN    RRNX
+073400000728     C           RRNX      CHAINHSS200C              98
+073500990122      *
+073600990218BL    * Create/Update order details if in Entry,Maint,or Dispatch mode.
+073700000728BL   C           YMODE     IFEQ 'E'
+073800000728BL   C           YMODE     OREQ 'D'
+073900000728BL   C           YMODE     OREQ 'M'
+074000990122     C                     EXSR UPORDD
+074100990218BL   C                     ENDIF
+074200990218      *
+074300990218BL    * Update voucher tracking if in Entry or Dispatch mode.
+074400990218BL    * Stock lines only.
+074500000728     C           YMODE     IFEQ 'E'
+074600000728     C           XSELC     ANDEQ'S'
+074700000728BL   C           YMODE     OREQ 'D'
+074800000728BL   C           XSELC     ANDEQ'S'
+074900990211     C                     EXSR UPTRAC
+075000990217BL   C                     ENDIF
+075100990219      *
+075200990219BL    * Allocate inventory if in Entry mode.
+075300990219BL    * Stock lines only.
+075400000728BL   C           YMODE     IFEQ 'E'
+075500000728BL   C           XSELC     ANDEQ'S'
+075600990219      * Update inventory allocations.
+075700990219     C                     EXSR UPINVA
+075800990219     C                     ENDIF
+075900990218      *
+076000990219BL    * Sell inventory if in Dispatch mode.
+076100990218BL    * Stock lines only.
+076200000728BL   C           YMODE     IFEQ 'D'
+076300000728BL   C           XSELC     ANDEQ'S'
+076400990219      * Update inventory sales.
+076500990219BL   C                     EXSR UPINVS
+076600990211      *
+076700990211      * Create inventory sales transaction.
+076800990128     C                     EXSR UPINVT
+076900990211     C                     ENDIF
+077000990128     C                     ENDIF
+077100000728     C                     ADD  1         RRNX
+077200990128     C                     ENDDO
+077300990211      *
+077400990218BL    * Create/Update order header if in Entry,Maint,or Dispatch mode.
+077500000728BL   C           YMODE     IFEQ 'E'
+077600000728BL   C           YMODE     OREQ 'D'
+077700000728BL   C           YMODE     OREQ 'M'
+077800990211     C                     EXSR UPORDH
+077900990211      *
+078000990218      * Create/update delivery record if in Entry,Maint or Dispat.mode.
+078100990211     C                     EXSR UPODEL
+078200990218BL   C                     ENDIF
+078300990128      *
+078400990218BL    * Ship to all delivery points if in Entry mode.
+078500000728BL   C           YMODE     IFEQ 'E'
+078600990218BL   C           MALLP     ANDEQ'Y'
+078700990128     C                     EXSR SHPALL
+078800990218BL   C                     ENDIF
+078900990128      *
+079000990218BL    * Print delivery note if in Entry mode, and charges only not set.
+079100000728BL   C           YMODE     IFEQ 'E'
+079200990218BL   C           MINVC     ANDNE'Y'
+079300990128     C                     EXSR PRTDEL
+079400990218BL   C                     ENDIF
+079500990128      *
+079600990218BL    * Print Invoice if in Entry mode, and Immediate print required.
+079700000728BL   C           YMODE     IFEQ 'E'
+079800990218BL   C           MINVP     ANDEQ'I'
+079900990128     C                     EXSR PRTINV
+080000990217BL   C                     ENDIF
+080100990218      *
+080200990128     C                     ENDIF
+080300990225      * Process Despatch if F07 pressed.
+080400990225RT   C           KEY       IFEQ F07
+080500000728     C                     EXSR YCLRSC
+080600990225      *
+080700990225RT   C                     LEAVE
+080800990225RT   C                     ENDIF
+080900990128      *
+081000990122      * End of Confirmation.
+081100990128     C                     ENDDO
+081200990205      *
+081300990205      * Return to order details if F12 pressed.
+081400990205     C           KEY       IFEQ F12
+081500990205     C                     GOTO DET
+081600990205     C                     ENDIF
+081700990205      *
+081800990205      * Clear Subfile
+081900990205     C                     MOVEA'1000'    *IN,70
+082000990205     C                     WRITEHSS200B
+082100990302      *
+082200990302      * Clear contents of HSPEXPA.
+082300000728     C                     EXSR YDELT
+082400990205      *
+082500990205      * Return to order header.
+082600990205     C                     GOTO HDR
+082700990122      *
+082800990106      *****************************************************************
+082900990120      *----------------------------------------------------------------
+083000000728      * @CLRSC - Clear screen fields.
+083100990120      *----------------------------------------------------------------
+083200990120      *
+083300000728     C           YCLRSC    BEGSR
+083400990120      *
+083500990217BL    * Clear header screen fields.
+083600000728BL   C           YMODE     IFNE 'E'
+083700000728     C                     CLEARXJTYPE
+083800990217BL   C                     ENDIF
+083900000728BL   C           YMODE     IFEQ 'D'
+084000000728     C                     CLEARXJSORD
+084100000728     C                     CLEARXENAM1
+084200000728     C                     CLEARXVQTY
+084300990219BL   C                     ENDIF
+084400000728     C                     CLEARXJCOMP
+084500000728     C                     CLEARXJWHSE
+084600000728     C                     CLEARXJPCDE
+084700000728     C                     CLEARXJCUST
+084800000728     C                     CLEARXJDISP
+084900000728     C                     CLEARXJORDD
+085000000728     C                     CLEARXJORDR
+085100990120      *
+085200990217BL    * Clear delivery screen fields.
+085300000728BL   C                     CLEARXVNAM1
+085400000728BL   C                     CLEARXVADR1
+085500000728BL   C                     CLEARXVADR2
+085600000728BL   C                     CLEARXVADR3
+085700000728BL   C                     CLEARXVPCDE
+085800000728BL   C                     CLEARXVDIN1
+085900000728BL   C                     CLEARXVDIN2
+086000000728BL   C                     CLEARXVDIN3
+086100990120     C                     ENDSR
+086200990122      *
+086300990122      *----------------------------------------------------------------
+086400990122      * SHPONL - Validate ship only requirements.
+086500990122      *----------------------------------------------------------------
+086600990122     C           SHPONL    BEGSR
+086700990125      *
+086800990125      * Check if a ship only record exists for this customer
+086900000728     C           XJCUST    CHAINHSLSHPOA             99
+087000990125     C           *IN99     IFEQ *OFF
+087100990125     C                     MOVEL'Y'       SHONLY  1
+087200990218BL   C                     ELSE
+087300990218BL   C                     MOVEL' '       SHONLY
+087400990125     C                     ENDIF
+087500990122     C                     ENDSR
+087600990122      *
+087700990122      *----------------------------------------------------------------
+087800990122      * AGXREF - Check for agency cross-references.
+087900990122      *----------------------------------------------------------------
+088000990122     C           AGXREF    BEGSR
+088100990223     C           KEYXRF    CHAINHSLVXRFB             99
+088200990126     C           *IN99     IFEQ *OFF
+088300990128     C                     MOVELHPROD     KPROD
+088400000728     C                     MOVELHPROD     XKPROD
+088500990126     C                     ENDIF
+088600990122     C                     ENDSR
+088700990122      *
+088800990122      *----------------------------------------------------------------
+088900990122      * VALIDD - Validate order detail screen fields.
+089000990122      *----------------------------------------------------------------
+089100990122     C           VALIDD    BEGSR
+089200990126      *
+089300990126      * Order Detail validation:
+089400990126      *
+089500990126      * Reset work values.
+089600000728     C*                    Z-ADD0         RRN#
+089700990223OWEM C                     Z-ADD0         RRNS    50
+089800990223OWE  C                     Z-ADD1         RRNT    50
+089900000728     C                     RESETXERROR
+090000990126     C                     MOVE *OFF      *IN61            Hide F10/F11
+090100990126      *
+090200990126      * Reset error indicators.
+090300000728     C                     MOVEAXZEROS    *IN,30
+090400990126      *
+090500990126      * Read all Records from subfile and validate contents.
+090600990127     C           *IN99     DOUEQ*ON                        ..Do1
+090700990223OWE   *
+090800990223OWE   * Process the subfile in one of two modes depending on whether
+090900990223OWE   * a previous change to the subfile has been made....
+091000990223OWE   *
+091100990223OWE  C           *IN82     IFEQ *OFF
+091200990223OWE  C                     READCHSS200C                  99
+091300000728OWE  C                     Z-ADDRRNX      RRNT
+091400990223OWE  C                     ADD  1         RRNT
+091500990223OWE  C                     ELSE
+091600990223OWE  C           RRNT      IFEQ 101
+091700990223OWE  C                     LEAVE
+091800990223OWE  C                     ENDIF
+091900990223OWE  C           RRNT      CHAINHSS200C              99
+092000990223OWE  C                     ADD  1         RRNT
+092100990223OWE  C                     ENDIF
+092200990223      *
+092300990223     C*                    READCHSS200C                  99
+092400990126      * Retrieve subfile record.
+092500990126     C           *IN99     IFEQ *OFF                       ...If2
+092600000728OWE  C                     MOVE XKPROD    TPROD1 13
+092700000728OWE  C                     MOVE XKQTYN    TQTYN1 150
+092800990223OWE  C                     MOVE *ON       *IN82
+092900990126      *
+093000990126      * Reset subfile error indicators.
+093100990126     C                     MOVEA'00000000'*IN,36
+093200990126      *
+093300000728     C           XSELC     IFNE *BLANK                     ....If3
+093400000728     C           XKPROD    ORNE *BLANK                     ....If3
+093500000728     C           XNDESC    ORNE *BLANK                     ....If3
+093600000728     C           XKPRIC    ORNE *ZEROS                     ....If3
+093700000728     C           XKQTYN    ORNE *ZEROS                     ....If3
+093800000728     C           XKVALU    ORNE *ZEROS                     ....If3
+093900000728     C           XKVATA    ORNE *ZEROS                     ....If3
+094000000728     C           XKSERC    ORNE *BLANKS                    ....If3
+094100000728     C           XKSERF    ORNE *ZEROS                     ....If3
+094200000728     C           XKSERT    ORNE *ZEROS                     ....If3
+094300990128      *
+094400990128      * Count active subfile records.
+094500000728OWE  C*                    ADD  1         RRN#
+094600990223OWE  C                     ADD  1         RRNS
+094700990126      *
+094800990126      * Validate Selection code.
+094900000728     C           XSELC     IFNE 'S'
+095000000728     C           XSELC     ANDNE'N'
+095100000728     C           XSELC     ANDNE'T'
+095200990127      *
+095300990127      * Validate Selection code / Product code / Text combination
+095400000728     C           XSELC     OREQ *BLANK
+095500000728     C           XKPROD    ANDNE*BLANKS
+095600000728     C           XSELC     OREQ *BLANK
+095700000728     C           XNDESC    ANDNE*BLANKS
+095800000728     C           XSELC     OREQ *BLANK
+095900000728     C           XKPRIC    ANDNE0
+096000000728     C           XSELC     OREQ *BLANK
+096100000728     C           XKQTYN    ANDNE0
+096200000728     C           XSELC     OREQ 'T'
+096300000728     C           XKPROD    ANDNE*BLANKS
+096400000728     C           XSELC     OREQ 'T'
+096500000728     C           XKPRIC    ANDNE0
+096600000728     C           XSELC     OREQ 'T'
+096700000728     C           XKQTYN    ANDNE0
+096800000728     C           XSELC     OREQ 'T'
+096900000728     C           XKSERC    ANDNE*BLANKS
+097000000728     C           XSELC     OREQ 'T'
+097100000728     C           XKSERF    ANDNE0
+097200000728     C           XSELC     OREQ 'T'
+097300000728     C           XKSERT    ANDNE0
+097400000728     C           XSELC     OREQ 'S'
+097500000728     C           XKQTYN    ANDEQ0
+097600000728     C*          #SELC     OREQ 'S'
+097700000728     C*          #KPRIC    ANDEQ0
+097800000728     C           XSELC     OREQ 'N'
+097900000728     C           XKQTYN    ANDEQ0
+098000000728     C           XSELC     OREQ 'N'
+098100000728     C           XKPRIC    ANDEQ0
+098200990126     C                     MOVE *ON       *IN36
+098300000728     C                     MOVE XYES      XERROR
+098400990126     C                     MOVEL'HSV2006' P0MSID
+098500000728     C                     EXSR YSNDMG
+098600990126     C                     ENDIF
+098700990218      *
+098800990218      * Validate Selection code for Invoice Charge Only order type.
+098900000728     C           XSELC     IFEQ 'S'
+099000990218     C           MINVC     ANDEQ'Y'
+099100990218     C                     MOVE *ON       *IN36
+099200000728     C                     MOVE XYES      XERROR
+099300990218     C                     MOVEL'HSV2014' P0MSID
+099400000728     C                     EXSR YSNDMG
+099500990218     C                     ENDIF
+099600990225      *
+099700000728XXX  C           YMODE     IFEQ 'D'
+099800000728XXX  C           XKQTYN    ANDGTXXQTYN
+099900000728XXX  C                     MOVE XYES      XERROR
+100000990225XXX  C                     MOVEL'HSV2020' P0MSID
+100100000728XXX  C                     EXSR YSNDMG
+100200990225XXX  C                     LEAVE
+100300990225XXX  C                     ELSE
+100400000728XXX  C                     EXSR YCLRMG
+100500990225XXX  C                     ENDIF
+100600990126      *
+100700990126      * Validate Product.
+100800000728     C           XSELC     IFEQ 'S'
+100900000728     C           XKPROD    IFNE *BLANKS
+101000000728     C           XKPROD    CHAINHSLPRODA             99
+101100990126     C           *IN99     IFEQ *ON
+101200990126     C                     MOVE *ON       *IN37
+101300000728     C                     MOVE XYES      XERROR
+101400990126     C                     MOVEL'HSV2007' P0MSID
+101500000728     C                     EXSR YSNDMG
+101600990127     C                     ELSE
+101700000728     C                     MOVELNDESC     XNDESC
+101800000728     C                     Z-ADDNPRIC     XKPRIC
+101900990201     C                     ENDIF
+102000990201     C                     ENDIF
+102100990201     C                     ENDIF
+102200990127      *
+102300990127      * Reverse price for Credit
+102400990127     C           MSALE     IFEQ 'C'
+102500000728     C                     Z-SUBXKPRIC    XKPRIC
+102600990127     C                     ENDIF
+102700990127      *
+102800990127      * Extended value
+102900000728     C           XSELC     IFEQ 'S'
+103000000728     C           XSELC     OREQ 'N'
+103100000728     C           XKPRIC    MULT XKQTYN    XKVALU
+103200990218BL    *
+103300000728BL   C*          #KVALU    MULT MVATP     #KVATA
+103400990126     C                     ENDIF
+103500990223      *
+103600990223OWE   * Save Price, Value and Description field contents....
+103700000728OWE  C                     MOVE XKPRIC    TKPRIC  92P
+103800000728OWE  C                     MOVE XKVALU    TKVALU  92P
+103900000728OWE  C                     MOVE XNDESC    TNDESC 19 P
+104000990223      *
+104100990211      * Check quantity against allocated serial numbers.
+104200000728OOO  C*          #KQTYN    IFNE 0
+104300000728OOO  C*          #KSERF    ANDNE0
+104400000728OOO  C*          #KSERT    ANDNE0
+104500000728OOO  C*          #KSERT    SUB  #KSERF    WKQTYN
+104600990223OOO  C*                    ADD  1         WKQTYN
+104700000728OOO  C*          #KQTYN    IFNE WKQTYN
+104800990223OOO  C*                    MOVEA'1011'    *IN,40
+104900000728OOO  C*                    MOVE #YES      #ERROR
+105000990223OOO  C*                    MOVEL'HSV2013' P0MSID
+105100000728OOO  C*                    EXSR @SNDMG
+105200990223OOO  C*                    ENDIF
+105300990223OOO  C*                    ENDIF
+105400990127      *
+105500990128      * Check voucher control if not yet allocated
+105600000728     C           XSELC     IFEQ 'S'
+105700000728     C           XKQTYN    ANDGT0
+105800000728OOO  C*          #KSERC    IFEQ *BLANKS
+105900000728OOO  C*          #KSERF    ANDEQ0
+106000000728OOO  C*          #KSERT    ANDEQ0
+106100990128     C                     MOVEL'U'       WKVCTL
+106200990127     C                     EXSR UPVCTL
+106300990128     C                     ENDIF
+106400990223OOO  C*                    ENDIF
+106500990126      *
+106600990126      * Update subfile record with DSPATR settings and set SFLRCDNBR.
+106700000728     C                     Z-ADDRRNX      RCDNBR
+106800000728OWE  C                     MOVE TKPRIC    XKPRIC
+106900000728OWE  C                     MOVE TKVALU    XKVALU
+107000000728OWE  C                     MOVE TNDESC    XNDESC
+107100990127     C                     UPDATHSS200C                    SFL
+107200990126     C                     MOVEA'00000000'*IN,36
+107300990126      *
+107400990126      * If errors encountered in subfile then exit subfile validation.
+107500000728     C           XERROR    IFEQ XYES
+107600000728OWE  C                     MOVELXSELC     TSELC   1 P
+107700000728OWE  C                     MOVELXKPROD    TPROD  13 P
+107800000728OWE  C                     MOVELXKPRIC    TPRIC   92P
+107900000728OWE  C                     MOVELXKQTYN    TQTYN   90P
+108000000728OWE  C                     MOVELXNDESC    TDESC  19 P
+108100000728OOO  C*                    Z-ADDRRN#      RRNS    50
+108200990126     C                     LEAVE
+108300990126     C                     ENDIF
+108400990126      *
+108500990126      * End of non-blank subfile check.
+108600990126     C                     ENDIF                           ....EndIf3
+108700990126      *
+108800990126      * End of Subfile CHAIN check.
+108900990126     C                     ENDIF                           ...EndIf2
+109000990126      *
+109100990128      * End of loop for next subfile record.
+109200990126     C                     ENDDO                           ..EndDo1
+109300990128      *
+109400990217      * Save last RRN number used.
+109500000728BL   C*                    Z-ADDRRN#      SAVRRN
+109600990126      *
+109700990126      * If no errors found...
+109800000728     C           XERROR    IFEQ XNO
+109900990126      * ...display "Data valid.Press F10 to update" message...
+110000990126     C                     MOVEL'HSV9006' P0MSID
+110100000728     C                     EXSR YSNDMG
+110200990126      * ...activate F10 key (*IN61=*ON).
+110300990126     C                     MOVE *ON       *IN61
+110400990126     C                     ENDIF
+110500000728XXX  C           XJUMP1    IFEQ XYES
+110600990303XXX  C           *IN52     ANDEQ*ON
+110700990303     C                     CALL 'HSR342'
+110800990303     C                     ENDIF
+110900990303XXX  C                     MOVE *OFF      *IN52
+111000990122     C                     ENDSR
+111100990122      *
+111200990122      *----------------------------------------------------------------
+111300990122      * DISCNT - Discount retrieval.
+111400990122      *----------------------------------------------------------------
+111500990216      *
+111600990122     C           DISCNT    BEGSR
+111700990216      *
+111800990216      * If customer discount is not entered on header screen either
+111900990216      * caluclate from HSPDISC file keyed on Order Value or default
+112000990216      * according to Customer Type.
+112100990216      *
+112200000728     C           XJDISP    IFEQ 0
+112300990216      *
+112400990216      * Setup key list for HSPDISC
+112500990216      *
+112600000728     C                     Z-ADDXKTVAL    PFAMT
+112700990216      *
+112800990216      * SETLL on HSLDISCA
+112900990216      *
+113000990216     C           DSCKEY    SETLLHSLDISCA                 99
+113100990216      *
+113200990216      * If record not found READP
+113300990216      *
+113400990216     C           *IN99     IFEQ *OFF
+113500990215     C                     READPHSLDISCA                 99
+113600990216      *
+113700990216      * If not BOF
+113800990216      *
+113900990216     C           *IN99     IFEQ *OFF
+114000990223BL   C           PCTYP     ANDEQECTYP
+114100990215     C                     Z-ADDPDISC     KDISP
+114200990216      *
+114300990216      * Else calculate discount according to Customer Type
+114400990216      *
+114500990215     C                     ELSE
+114600990216      *
+114700990215     C                     SELEC
+114800990216      *
+114900990216      * If Customer Type is '001' - Z-ADD 10 to discount
+115000990216      *
+115100990215     C           ECTYP     WHEQ '001'
+115200990215     C                     Z-ADD10        KDISP
+115300990216      *
+115400990216      * If Customer Type is '002' - Z-ADD 20 to discount
+115500990216      *
+115600990215     C           ECTYP     WHEQ '002'
+115700990215     C                     Z-ADD20        KDISP
+115800990216      *
+115900990215     C                     ENDSL
+116000990216      *
+116100990215     C                     ENDIF
+116200990216      *
+116300990216      * Record found on SETLL
+116400990216      *
+116500990216     C                     ELSE
+116600990216      *
+116700990216     C                     Z-ADDPDISC     KDISP
+116800990216      *
+116900990216     C                     ENDIF
+117000990216      *
+117100000728      * #JDISP not equal to 0
+117200990216      *
+117300990215     C                     ELSE
+117400000728     C                     Z-ADDXJDISP    KDISP
+117500990216      *
+117600990215     C                     ENDIF
+117700990216      *
+117800990122     C                     ENDSR
+117900990122      *
+118000990122      *----------------------------------------------------------------
+118100990122      * Check for minimum order value.
+118200990122      *----------------------------------------------------------------
+118300990122     C           MINVAL    BEGSR
+118400990128     C                     Z-ADD0         WKTOTV
+118500990225     C                     Z-ADD1         RRNP
+118600990127      *
+118700990127      * Accumulate order total value
+118800990127     C           *IN99     DOUEQ*ON
+118900990225BL   C           RRNP      OREQ 100
+119000000728BL   C           XSELC     OREQ *BLANK
+119100990225     C           RRNP      CHAINHSS200C              99
+119200990127     C           *IN99     IFEQ *OFF
+119300000728     C                     ADD  XKVALU    WKTOTV
+119400990127     C                     ENDIF
+119500990225     C                     ADD  1         RRNP
+119600990127     C                     ENDDO
+119700990127      *
+119800990127      * Compare order total value and minimum order value
+119900990128     C           WKTOTV    IFLT MORDV
+120000000728     C                     MOVE XYES      XERROR
+120100990201     C                     MOVEL'HSV2011' P0MSID
+120200000728     C                     EXSR YSNDMG
+120300990201     C                     ENDIF
+120400990225     C                     Z-ADD1         RRNP
+120500000728     C                     Z-ADD1         RRNX
+120600990122     C                     ENDSR
+120700990122      *
+120800990122      *----------------------------------------------------------------
+120900990122      * Ship to all delivery points.
+121000990122      *----------------------------------------------------------------
+121100990122     C           SHPALL    BEGSR
+121200990216     C*
+121300990216     C* SETLL on HSLCUSTA with Customer Number
+121400990216     C*
+121500000728     C           XJCUST    SETLLHSLCUSTA
+121600990216     C*
+121700990216     C* READE on HSLCUSTA with Customer Number
+121800990216     C*
+121900000728     C           XJCUST    READEHSLCUSTA                 99
+122000990216     C*
+122100990216     C* If not EOF
+122200990216     C*
+122300990216     C           *IN99     DOWEQ*OFF
+122400990216     C*
+122500990216     C* If ECGRP not equal to blanks
+122600990216     C*
+122700990216     C           ECGRP     IFNE *BLANKS
+122800990216     C*
+122900990216     C* CHAIN to Customer File for Delivery Name and Address
+123000990216     C*
+123100990318     C*          ECGRP     CHAINALTCUSTF             13
+123200990216     C*
+123300990318     C*          *IN13     IFEQ *OFF
+123400990216     C*
+123500990216     C* Write Order Header Record
+123600990216     C*
+123700990216     C                     EXSR UPORDH
+123800990216     C*
+123900990216     C* Set up Delivery Name and Address
+124000990216     C*
+124100000728     C                     MOVELENAM1     XVNAM1
+124200000728     C                     MOVELEADR1     XVADR1
+124300000728     C                     MOVELEADR2     XVADR2
+124400000728     C                     MOVELEADR3     XVADR3
+124500000728     C                     MOVELEPCDE     XVPCDE
+124600990216     C*
+124700990216     C* Write Order Delivery Record
+124800990216     C*
+124900990216     C                     EXSR UPODEL
+125000990216     C*
+125100990216     C* Write Order Detail Record
+125200990216     C*
+125300990216     C                     EXSR UPORDD
+125400990216     C*
+125500990216     C* ECGRP equal to blanks
+125600990216     C*
+125700990318     C*                    ENDIF
+125800990216     C*
+125900990216     C* Customer Record not found
+126000990216     C*
+126100990216     C                     ENDIF
+126200990216     C*
+126300990216     C* Increment order number
+126400990216     C*
+126500000728     C           *LOCK     IN   ORDERX
+126600000728     C                     ADD  1         ORDERX
+126700000728     C                     OUT  ORDERX
+126800000728     C                     Z-ADDORDERX    XJSORD
+126900990216     C*
+127000990216     C* READE on HSLCUSTA with Customer Number
+127100990216     C*
+127200000728     C           XJCUST    READEHSLCUSTA                 99
+127300990216     C*
+127400990216     C                     ENDDO
+127500990216     C*
+127600990216     C* EOF on HSLCUSTA
+127700990216     C*
+127800990122     C                     ENDSR
+127900990122      *
+128000990122      *----------------------------------------------------------------
+128100990122      * Update voucher control.
+128200990122      *----------------------------------------------------------------
+128300990302     C           UPVCTL    BEGSR
+128400990128      *
+128500990302     C                     MOVE *ON       *IN85
+128600990302      * Save order line values
+128700990302      *
+128800990301     C                     Z-ADD0         XQUAN   90
+128900000728     C                     MOVE XNO       XJUMP   1
+129000990128      * Clear flag for successful range allocation.
+129100990128     C                     MOVEL*BLANK    WKRANG
+129200990301      *
+129300990301      * Clear flag for first tracking record found.
+129400000728     C                     MOVELXNO       XFIRST  1
+129500990127      *
+129600990127      * Get Serial number range.
+129700990128     C                     MOVEL*BLANKS   WKSERC
+129800990128     C           *IN92     DOUEQ*ON
+129900990128     C           WKRANG    OREQ 'Y'
+130000990223      *
+130100990223OWE   * Work back through the subfile checking for duplicate
+130200990223OWE   * product codes.... If found validate data under DOUB subroutine.
+130300990223      *
+130400000728OWE  C                     MOVE RRNX      RRNXX   50
+130500000728OWE  C           RRNX      DOUEQ0
+130600000728OWE  C                     SUB  1         RRNX
+130700000728OWE  C           RRNX      IFEQ 0
+130800990223OWE  C                     LEAVE
+130900990223OWE  C                     ENDIF
+131000000728OWE  C           RRNX      CHAINHSS200C              90
+131100000728OWE  C           XKPROD    IFEQ TPROD1
+131200000728OWE  C                     MOVE RRNXX     RRNX
+131300990223OWE  C                     EXSR DOUB
+131400990223OWE  C                     MOVE *ON       *IN81
+131500990223OWE  C                     LEAVE
+131600990223OWE  C                     ENDIF
+131700990223OWE  C                     ENDDO
+131800990223      *
+131900990223OWE   * Reset subfile position.....
+132000000728OWE  C                     MOVE RRNXX     RRNX
+132100000728OWE  C           RRNX      CHAINHSS200C              90
+132200990223      *
+132300990223      * Exit from subroutine if DOUB sr has been processed....
+132400990223      *
+132500990223OWE  C           *IN81     IFEQ *ON
+132600000728OWE  C                     MOVE XKSERF    XKSERF
+132700000728OWE  C                     MOVE XKSERC    XKSERC
+132800000728OWE  C                     MOVE XKSERT    XKSERT
+132900990223OWE  C                     MOVE *OFF      *IN81
+133000990223OWE  C                     LEAVE
+133100990223OWE  C                     ENDIF
+133200990223      *
+133300990128     C           VCHKEY    SETLLHSLVCTLA
+133400000728     C           XKPROD    READEHSLVCTLA                 92
+133500990301      *
+133600990301      * Move pointer file values into temporary fields....
+133700990301      *
+133800990301     C                     MOVE BPROD     OPROD  13
+133900990302     C                     MOVE BSERCC    OSERC   3
+134000990302     C                     MOVE BSERNN    OSERN   90
+134100990302     C                     Z-ADDBSERNN    WKSERN
+134200990302     C                     MOVE BSERCC    WKSERC
+134300000728     C                     Z-ADDBSERNN    XXSERF  90
+134400000728     C********             SUB  1         ##SERF
+134500990301      *
+134600990301      *
+134700990127     C           *IN92     IFEQ *OFF
+134800990128      *
+134900990301      * Scan voucher tracking file for first available voucher....
+135000990301      *
+135100000728     C                     MOVE BSERCC    XKSERC
+135200000728     C                     MOVE OSERN     XKSERF
+135300990301      *
+135400990301     C           *IN94     DOUEQ*ON
+135500000728     C           XQUAN     OREQ XKQTYN
+135600990301      *
+135700990303     C           *IN85     IFEQ *ON
+135800990302     C           TRCKEY    SETLLHSLTRACB
+135900990303     C                     MOVE *OFF      *IN85
+136000990303     C                     ENDIF
+136100990302      *
+136200000728     C           XKPROD    READEHSLTRACB                 94
+136300990301      *
+136400990301     C           *IN94     IFEQ *ON
+136500990301     C                     LEAVE
+136600990301     C                     ENDIF
+136700990301      *
+136800990301     C           ASERC     IFNE WKSERC
+136900990301     C           ASERN     ORNE WKSERN
+137000990302     C           AALLD     ORNE *ZEROS
+137100990303     C                     ADD  1         DSERN
+137200990303      *
+137300990303     C           *IN87     IFEQ *OFF
+137400990303     C           XXSERN    ADD  1         XXRES   90
+137500990303PPP  C*          XXRES     IFNE ASERN
+137600000728PPP  C*                    MOVE ASERN     ##SERF
+137700990303PPP  C*                    ELSE
+137800000728     C                     MOVE ASERN     XXSERF
+137900000728     C                     ADD  1         XXSERF
+138000990303     C                     ADD  1         WKSERN
+138100990303RRR  C                     MOVE *ON       *IN85
+138200000728RRR  C                     ADD  1         XKSERF
+138300990303PPP  C*                    ENDIF
+138400990303     C                     ELSE
+138500990303      *
+138600990303      * No previous error so add to HSPEXPA.....
+138700990303     C                     MOVE WKSERC    XXSERC  3 P
+138800990303     C                     MOVE WKSERN    XXSERN  90P
+138900990302     C                     SUB  1         WKSERN
+139000000728     C                     MOVE XYES      XJUMP
+139100000728XXX  C                     MOVE XYES      XJUMP1  1
+139200990303      *
+139300990303     C****       *IN87     IFEQ *ON
+139400000728     C                     MOVE XXSERF    USERNS
+139500990301     C                     MOVE WKSERN    USERNE
+139600990301     C                     MOVE WKSERC    USERCC
+139700000728     C                     MOVE XKPROD    UPROD
+139800990302     C                     OPEN HSLEXPAA
+139900990302     C                     WRITEHSFEXPA
+140000990302     C                     CLOSEHSLEXPAA
+140100990303     C*****                ENDIF
+140200990303      *
+140300000728     C                     MOVE ASERN     XXSERF
+140400990303     C                     ADD  1         DSERN
+140500990303     C           DSERN     IFNE ASERN
+140600990303     C           ASERN     SUB  DSERN     DIF     90
+140700000728     C                     ADD  DIF       XXSERF
+140800990303     C                     ENDIF
+140900990303      *
+141000000728     C                     ADD  1         XKSERF
+141100990302     C                     ADD  2         WKSERN
+141200990302     C                     MOVE *ON       *IN85
+141300990302     C                     MOVE *OFF      *IN87
+141400990302      *
+141500990303XXX  C           ASERC     IFNE WKSERC
+141600990303XXX  C                     MOVE ASERC     WKSERC
+141700990303XXX  C                     MOVE ASERN     WKSERN
+141800000728XXX  C                     MOVE WKSERC    XKSERC
+141900000728XXX  C                     MOVE WKSERN    XKSERF
+142000000728XXX  C                     MOVE WKSERN    XXSERF
+142100990303XXX  C                     MOVE *ON       *IN85
+142200990303XXX  C                     ENDIF
+142300990303      *
+142400990301     C                     ITER
+142500990301     C                     ENDIF
+142600990303      *
+142700990303     C           ASERC     IFNE WKSERC
+142800990303     C                     MOVE ASERC     WKSERC
+142900990303     C                     MOVE ASERN     WKSERN
+143000000728     C                     MOVE WKSERC    XKSERC
+143100000728XXX  C                     MOVE WKSERN    XKSERF
+143200000728XXX  C                     MOVE WKSERN    XXSERF
+143300990303     C                     MOVE *ON       *IN85
+143400990303     C                     ENDIF
+143500990303      *
+143600990303     C                     ENDIF
+143700990301      *
+143800990303      *
+143900990302     C           AALLD     IFEQ *ZEROS
+144000990302     C***        *IN87     IFEQ *OFF
+144100000728     C***                  ADD  1         ##SERF
+144200990302     C***                  ENDIF
+144300990302     C                     MOVE *ON       *IN87
+144400990301     C                     ADD  1         XQUAN
+144500000728     C                     MOVE XYES      XFIRST
+144600990302     C                     MOVE ASERC     WKSERC
+144700990303     C                     MOVE ASERN     DSERN   90P
+144800990301     C                     ADD  1         WKSERN
+144900000728     C                     ADD  1         XKSERF
+145000990303     C                     MOVE *ON       *IN85
+145100990301     C                     ITER
+145200990301     C                     ELSE
+145300990303     C                     ITER
+145400990301     C                     ENDIF
+145500990301      *
+145600990301     C                     ENDDO
+145700990301      *
+145800000728     C           XFIRST    IFEQ XNO
+145900000728     C                     MOVE XYES      XERROR
+146000990301     C                     MOVEL'HSV2024' P0MSID
+146100000728     C                     EXSR YSNDMG
+146200000728     C                     CLEARXKSERC
+146300000728     C                     CLEARXKSERT
+146400000728     C                     CLEARXKSERF
+146500990301     C                     LEAVE
+146600990301     C                     ENDIF
+146700990128      *
+146800000728     C           XQUAN     IFNE XKQTYN
+146900000728     C                     MOVE XYES      XERROR
+147000990301     C                     MOVEL'HSV2025' P0MSID
+147100000728     C                     EXSR YSNDMG
+147200000728     C                     CLEARXKSERC
+147300000728     C                     CLEARXKSERT
+147400000728     C                     CLEARXKSERF
+147500990303     C*****                MOVE *ON       *IN52
+147600990301     C                     LEAVE
+147700990301     C                     ENDIF
+147800990301      *
+147900990303     C                     MOVE *ON       *IN52
+148000990303      *
+148100000728     C           XJUMP     IFEQ XYES
+148200000728     C***                  MOVE #YES      #ERROR
+148300990301     C                     MOVEL'HSV2026' P0MSID
+148400000728     C                     EXSR YSNDMG
+148500990302      *
+148600990302     C                     SUB  1         WKSERN
+148700990303XXX  C                     MOVEL'Y'       WKRANG
+148800990302      *
+148900000728     C*****                MOVE XXSERC    #KSERC
+149000000728     C*****                MOVE XXSERN    #KSERF
+149100990303     C*****      TRCKEY    CHAINHSLTRACB             99
+149200990303     C*****      *IN99     IFEQ *OFF
+149300000728     C*****                ADD  1         ##SERF
+149400990303     C*****                ENDIF
+149500990302      *
+149600000728     C                     MOVE XXSERF    USERNS
+149700990302     C                     MOVE WKSERN    USERNE
+149800990302     C                     MOVE WKSERC    USERCC
+149900990302     C                     OPEN HSLEXPAA
+150000990302     C                     WRITEHSFEXPA
+150100990302     C                     CLOSEHSLEXPAA
+150200990302      *
+150300000728     C                     CLEARXKSERC
+150400000728     C                     CLEARXKSERT
+150500000728     C                     CLEARXKSERF
+150600000728     C                     EXSR YJUMP
+150700990302     C                     MOVE *ON       *IN86
+150800990302     C                     MOVE *ON       *IN61
+150900990301     C                     LEAVE
+151000990301     C                     ENDIF
+151100990301      *
+151200990128      * Series code found.
+151300000728     C                     MOVE BSERCC    XKSERC
+151400990127      *
+151500000728     C                     Z-ADDOSERN     XKSERF
+151600990302     C                     SUB  1         WKSERN
+151700000728     C                     Z-ADDWKSERN    XKSERT
+151800990128      *
+151900990128      * Flag successful range allocation.
+152000990128     C                     MOVEL'Y'       WKRANG
+152100990128      *
+152200990128      * Update if required.
+152300990127     C                     ENDIF
+152400990128     C                     ENDDO
+152500990127      *
+152600990128      * Unsuccessful range allocation.
+152700990128     C           WKRANG    IFNE 'Y'
+152800990128     C                     MOVEA'111'     *IN,41
+152900000728XXX  C****                 MOVE #YES      #ERROR
+153000990128     C                     MOVEL'HSV2012' P0MSID
+153100000728     C                     EXSR YSNDMG
+153200990128     C                     ENDIF
+153300990128      *
+153400990122     C                     ENDSR
+153500990302      *
+153600990302      *----------------------------------------------------------------
+153700990302      * Display contents of HSLEXPAA
+153800990302      *----------------------------------------------------------------
+153900990302      *
+154000000728     C           YJUMP     BEGSR
+154100990302     C                     ENDSR
+154200990122      *
+154300990302      *
+154400990302      *----------------------------------------------------------------
+154500990302      * Delete contents of HSLEXPAA
+154600990302      *----------------------------------------------------------------
+154700990302      *
+154800000728     C           YDELT     BEGSR
+154900990302     C                     CALL 'HSC200A'
+155000990302     C                     ENDSR
+155100990302      *
+155200990223      *----------------------------------------------------------------
+155300990223      * Repeat of Product Code in a single order
+155400990223      *----------------------------------------------------------------
+155500990223      *
+155600990223OWE  C           DOUB      BEGSR
+155700990223      *
+155800990223      * Get Serial number range.
+155900990223OWE  C                     MOVEL*BLANKS   WKSERC
+156000990223OWE  C           *IN92     DOUEQ*ON
+156100990223OWE  C           WKRANG    OREQ 'Y'
+156200990223      *
+156300990223OWE  C           VCHKEY    SETLLHSLVCTLA
+156400000728OWE  C           XKPROD    READEHSLVCTLA                 92
+156500990223OWE  C           *IN92     IFEQ *OFF
+156600990223      *
+156700990223      * Get available series code.
+156800000728OWEM C           BSERNN    ADD  TQTYN1    XXSERN  90
+156900990302OWE  C*          ##SERN    IFGT BSERNE
+157000990302OWE  C*                    MOVELBSERCN    WKSERC
+157100990223OWE  C                     ITER
+157200990223OWE  C                     ELSE
+157300990223      *
+157400990223      * Work back through the subfile searching for duplicate
+157500990223      * product code/series code combination records......
+157600990223      *
+157700000728OWE  C                     MOVE RRNX      RRNXX   50P
+157800000728OWE  C           RRNX      DOUEQ0
+157900000728OWE  C                     SUB  1         RRNX
+158000000728OWE  C           RRNX      IFEQ 0
+158100990223OWE  C                     MOVE *ON       *IN83
+158200990223OWE  C                     LEAVE
+158300990223OWE  C                     ENDIF
+158400000728OWE  C           RRNX      CHAINHSS200C              90
+158500000728OWE  C           XKSERC    IFEQ BSERCC
+158600000728OWE  C           XKSERT    ADD  TQTYN1    RES     90
+158700990302OWE  C*          RES       IFLE BSERNE
+158800000728OWE  C                     MOVE XKSERC    KKSERC  3 P
+158900000728OWE  C                     MOVE XKSERT    KKSERT  90P
+159000990223OWE  C                     LEAVE
+159100990223OWE  C                     ELSE
+159200990223OWE  C                     MOVE *ON       *IN84
+159300990223OWE  C                     LEAVE
+159400990302OWE  C                     ENDIF
+159500990302OWE  C*                    ENDIF
+159600990223OWE  C                     ENDDO
+159700990223      *
+159800990223      * Reset the subfile pointer position.....
+159900000728OWE  C                     MOVE RRNXX     RRNX      P
+160000000728OWE  C           RRNX      CHAINHSS200C              90
+160100990223      *
+160200990223OWE  C           *IN84     IFEQ *OFF
+160300990223OWE  C           *IN83     ANDEQ*OFF
+160400990223OWE   * Series code found.
+160500000728OWE  C                     MOVE KKSERC    XKSERC  3 P
+160600990223OWE   *
+160700990223OWE   * Set To serial number for the order.
+160800000728OWE  C                     MOVE RES       XKSERT  90P
+160900990223OWE   *
+161000990223OWE   * Set From Serial Number for the order.
+161100000728OWE  C           KKSERT    ADD  1         XKSERF  90
+161200990223OWE   *
+161300990223OWE   * Set Next Serial Number for the voucher control.
+161400990223OWE  C                     ADD  TQTYN1    BSERNN
+161500990223OWE   *
+161600990223OWE   * Flag successful range allocation.
+161700990223OWE  C                     MOVEL'Y'       WKRANG
+161800990223OWE  C                     ITER
+161900990223OWE  C                     ENDIF
+162000990223      *
+162100990223OWE  C           *IN83     IFEQ *ON
+162200990223OWE  C           *IN84     ANDEQ*OFF
+162300990223OWE  C                     MOVE *OFF      *IN83
+162400990223      *
+162500990223OWE   * Series code found.
+162600000728OWE  C                     MOVE BSERCC    XKSERC  3
+162700990223OWE   *
+162800990223OWE   * Set To serial number for the order.
+162900000728OWE  C           BSERNN    ADD  TQTYN1    XKSERT  90
+163000000728OWE  C                     SUB  1         XKSERT
+163100990223OWE   *
+163200990223OWE   * Set From Serial Number for the order.
+163300000728OWE  C                     Z-ADDBSERNN    XKSERF
+163400990223OWE   *
+163500990223OWE   * Set Next Serial Number for the voucher control.
+163600990223OWE  C                     ADD  TQTYN1    BSERNN
+163700990223OWE   *
+163800990223OWE   * Flag successful range allocation.
+163900990223OWE  C                     MOVEL'Y'       WKRANG
+164000990223OWE  C                     ITER
+164100990223OWE  C                     ENDIF
+164200990223OWE  C                     MOVE *OFF      *IN84
+164300990302OWE  C*                    MOVELBSERCN    WKSERC
+164400990223      *
+164500990302OWE  C*                    ENDIF
+164600990223OWE  C                     ENDIF
+164700990223OWE  C                     ENDDO
+164800990223OWE  C                     ENDSR
+164900990122      *----------------------------------------------------------------
+165000990122      * Update voucher tracking.
+165100990122      *----------------------------------------------------------------
+165200990122     C           UPTRAC    BEGSR
+165300990128      *
+165400990128      * Reverse order date before update.
+165500000728BL   C           YMODE     IFEQ 'E'
+165600990215     C                     Z-ADDJDD       WKD
+165700990215     C                     Z-ADDJMM       WKM
+165800990215     C                     Z-ADDJCC       WKC
+165900990215     C                     Z-ADDJYY       WKY
+166000990215     C                     Z-ADDWKORDD    ADFIS
+166100990217BL   C                     ENDIF
+166200990128      *
+166300990128      * Locate voucher record.
+166400990128     C           TRCKEY    SETLLHSLTRACB
+166500000728     C           XKPROD    DOUNEAPROD
+166600990128     C           *IN99     OREQ *ON
+166700990128     C                     READ HSLTRACB                 99
+166800990128     C           *IN99     IFEQ *OFF
+166900990128      *
+167000990128      * Exit if product code or series code does not match.
+167100000728     C           XKPROD    IFNE APROD
+167200000728     C           XKSERC    ORNE ASERC
+167300990128     C                     LEAVE
+167400990128     C                     ENDIF
+167500990128      *
+167600990128      * Update vouchers in the serial number range.
+167700000728     C           XKSERF    IFLE ASERN
+167800000728     C           XKSERT    ANDGEASERN
+167900000728BL   C           YMODE     IFEQ 'D'
+168000000728BL   C                     MOVELXJCUST    ACUST
+168100990217BL   C                     Z-ADD0         ADSPB
+168200990217BL   C                     ELSE
+168300990217      *
+168400000728     C                     Z-ADDXJSORD    ASORD
+168500990215     C                     Z-ADDWKORDD    ADFIS
+168600990128     C                     UPDATHSFTRAC
+168700990217BL   C                     ENDIF
+168800990128     C                     ENDIF
+168900990128     C                     ENDIF
+169000990128     C                     ENDDO
+169100990122     C                     ENDSR
+169200990122      *
+169300990122      *----------------------------------------------------------------
+169400990122      * Update inventory allocations.
+169500990122      *----------------------------------------------------------------
+169600990122     C           UPINVA    BEGSR
+169700990128      *
+169800990128      * Update stock quantities.
+169900990205     C           IVMKEY    CHAINHSLINVMA             99
+170000990128     C           *IN99     IFEQ *OFF
+170100990128      *
+170200990128      * Increase allocated quantity and reduce available quantity.
+170300000728     C                     ADD  XKQTYN    DQTYR
+170400000728     C                     SUB  XKQTYN    DQTYF
+170500990128     C                     UPDATHSFINVM
+170600990128     C                     ENDIF
+170700990122     C                     ENDSR
+170800990219      *
+170900990219      *----------------------------------------------------------------
+171000990219      * Update inventory sales.
+171100990219      *----------------------------------------------------------------
+171200990219BL   C           UPINVS    BEGSR
+171300990219BL    *
+171400990219BL    * Update stock quantities.
+171500990219BL   C           IVMKEY    CHAINHSLINVMA             99
+171600990219BL   C           *IN99     IFEQ *OFF
+171700990219BL    *
+171800990219BL    * Reduce allocated quantity and reduce on-hand quantity.
+171900000728BL   C                     SUB  XKQTYN    DQTYR
+172000000728BL   C                     SUB  XKQTYN    DQTYO
+172100990219BL   C                     UPDATHSFINVM
+172200990219BL   C                     ENDIF
+172300990219BL   C                     ENDSR
+172400990219      *
+172500990122      *----------------------------------------------------------------
+172600990122      * Print delivery note.
+172700990122      *----------------------------------------------------------------
+172800990122     C           PRTDEL    BEGSR
+172900000728BL   C                     MOVELXJSORD    ORDPRM
+173000990217BL   C                     CALL 'HSR230'
+173100990217BL   C                     PARM           ORDPRM
+173200990122     C                     ENDSR
+173300990122      *
+173400990122      *----------------------------------------------------------------
+173500990122      * Print invoice.
+173600990122      *----------------------------------------------------------------
+173700990122     C           PRTINV    BEGSR
+173800000728BL   C                     MOVELXJSORD    ORDPRM
+173900990217BL   C                     CALL 'HSR220'
+174000990217BL   C                     PARM           ORDPRM
+174100990122     C                     ENDSR
+174200990122      *
+174300990122      *----------------------------------------------------------------
+174400990122      * Create order details.
+174500990122      *----------------------------------------------------------------
+174600990122     C           UPORDD    BEGSR
+174700990215      *
+174800990215      * Order line already exists
+174900990215     C                     MOVEL' '       UPDAT
+175000000728     C           XOLIN     IFGT 0
+175100990215     C           KEYOLN    CHAINHSLORDDB             98
+175200000728     C                     Z-ADDXOLIN     KLINE
+175300990215     C                     ENDIF
+175400990128      *
+175500990128      * Write fields for order detail record.
+175600000728     C                     MOVELXSELC     KLTYP
+175700000728     C                     MOVELXJCOMP    KCOMP
+175800000728     C                     MOVELXJTYPE    KTYPE
+175900000728     C                     Z-ADDXJSORD    KSORD
+176000000728     C                     Z-ADDRRNX      KLINE
+176100000728     C                     MOVELXJCUST    KCUST
+176200000728     C                     MOVELXKPROD    KPROD
+176300000728     C                     MOVELXKSERC    KSERC
+176400000728     C                     Z-ADDXKSERF    KSERNF
+176500990128     C                     Z-ADD0         KELEMF
+176600000728     C                     Z-ADDXKSERT    KSERNT
+176700990128     C                     Z-ADD0         KELEMT
+176800000728     C                     Z-ADDXKQTYN    KQTYN
+176900990128     C                     Z-ADDNCOST     KCOST
+177000000728     C                     Z-ADDXKPRIC    KPRIC
+177100000728     C                     Z-ADDXKVALU    KVALU
+177200990208      *
+177300990218BL    * Obtain VAT% from Order Type record.
+177400000728BL   C*          #KVALU    MULT .175      KVATA
+177500000728BL   C*          #KVALU    MULT MVATP     KVATA
+177600990223BL   C*          KVATA     DIV  100       KVATA     H
+177700990128     C                     Z-ADDCYMD      KCRTD
+177800000728     C                     Z-ADDXXTME     KCRTT
+177900000728     C                     MOVELXNDESC    KDESC
+178000000728     C                     MOVELXJOBNO    KCRTS
+178100000728     C                     MOVELXUSRID    KCRTU
+178200000728     C                     MOVELXPGMID    KCRTP
+178300990128     C                     MOVEL*BLANK    KDELT
+178400990215      *
+178500990215      * Update order detail record.
+178600000728     C           XOLIN     IFGT 0
+178700990211     C           *IN98     IFEQ *OFF
+178800990211     C                     MOVEL'Y'       UPDAT
+178900990211     C                     UPDATHSFORDD
+179000990211     C                     ENDIF
+179100990211     C                     ELSE
+179200990215      *
+179300990128      * Write order detail record.
+179400990128     C                     WRITEHSFORDD
+179500990211     C                     ENDIF
+179600990122     C                     ENDSR
+179700990122      *
+179800990122      *----------------------------------------------------------------
+179900990122      * Create order header.
+180000990122      *----------------------------------------------------------------
+180100990122     C           UPORDH    BEGSR
+180200990215      *
+180300990215      * Program mode - Maintenance, or Dispatch
+180400000728     C           YMODE     IFEQ 'M'
+180500000728     C           YMODE     OREQ 'D'
+180600990215      *
+180700990215      * Access order header record.
+180800000728     C           XJSORD    CHAINHSLORDHA             99
+180900990215     C                     ENDIF
+181000990128      *
+181100990128      * Write fields for order header record.
+181200000728     C                     MOVELXJCOMP    JCOMP
+181300000728     C                     MOVELXJCUST    JCUST
+181400990128     C                     MOVEL*BLANKS   JCUSB
+181500000728     C                     MOVELXJORDR    JORDR
+181600000728     C                     MOVELXJTYPE    JTYPE
+181700000728     C                     Z-ADDXJSORD    JSORD
+181800990128     C                     Z-ADDWKORDD    JORDD
+181900990128     C                     MOVEL*BLANKS   JINVN
+182000990128     C                     Z-ADD0         JINVD
+182100990128     C                     MOVEL*BLANKS   JDELN
+182200990128     C                     Z-ADD0         JDELD
+182300990128     C                     Z-ADDCYMD      JCRTD
+182400000728     C                     Z-ADDXXTME     JCRTT
+182500000728     C                     MOVELXJOBNO    JCRTS
+182600000728     C                     MOVELXUSRID    JCRTU
+182700000728     C                     MOVELXPGMID    JCRTP
+182800990128     C                     MOVEL*BLANK    JDELT
+182900990128      *
+183000990215      * Program mode - Entry
+183100000728     C           YMODE     IFEQ 'E'
+183200990211      *
+183300990128      * Write order header record.
+183400990217BL   C                     MOVEL'A'       JSTAT
+183500990217     C                     WRITEHSFORDH
+183600990211     C                     ENDIF
+183700990211      *
+183800990215      * Program mode - Maintenance, or Dispatch
+183900000728     C           YMODE     IFEQ 'M'
+184000000728     C           YMODE     OREQ 'D'
+184100000728BL   C           YMODE     IFEQ 'D'
+184200990225BL   C                     Z-ADD*DATE     JDELD
+184300990217BL   C                     MOVEL'D'       JSTAT
+184400990217BL   C                     ENDIF
+184500990211      *
+184600990211      * Update order header record.
+184700990211     C           *IN99     IFEQ *OFF
+184800990211     C                     UPDATHSFORDH
+184900990211     C                     ENDIF
+185000990211     C                     ENDIF
+185100990122     C                     ENDSR
+185200990122      *
+185300990128      *----------------------------------------------------------------
+185400990128      * Create order delivery details.
+185500990128     C           UPODEL    BEGSR
+185600990215      *
+185700990215      * Program mode - Maintenance, or Dispatch
+185800000728     C           YMODE     IFEQ 'M'
+185900000728     C           YMODE     OREQ 'D'
+186000990215      *
+186100000728     C           XJSORD    CHAINHSFODEL              99
+186200990215     C                     ENDIF
+186300990128      *
+186400990128      * Write fields for order delivery detail record.
+186500000728     C                     MOVELXJCOMP    VCOMP
+186600000728     C                     MOVELXJTYPE    VTYPE
+186700000728     C                     Z-ADDXJSORD    VSORD
+186800000728     C                     MOVELXVNAM1    VNAM1
+186900000728     C                     MOVELXVADR1    VADR1
+187000000728     C                     MOVELXVADR2    VADR2
+187100000728     C                     MOVELXVADR3    VADR3
+187200000728     C                     MOVELXVPCDE    VPCDE
+187300000728     C                     MOVELXVDIN1    VDIN1
+187400000728     C                     MOVELXVDIN2    VDIN2
+187500000728     C                     MOVELXVDIN3    VDIN3
+187600990128     C                     MOVEL*BLANKS   VDELT
+187700990128      *
+187800990215      * Program mode - Entry
+187900000728     C           YMODE     IFEQ 'E'
+188000990211      *
+188100990211      * Write order delivery details record.
+188200990211     C                     WRITEHSFODEL
+188300990211     C                     ENDIF
+188400990211      *
+188500990215      * Program mode - Maintenance, or Dispatch
+188600000728     C           YMODE     IFEQ 'M'
+188700000728     C           YMODE     OREQ 'D'
+188800990211      *
+188900990211      * Update order delivery details record.
+189000990211     C           *IN99     IFEQ *OFF
+189100990211     C                     UPDATHSFODEL
+189200990211     C                     ENDIF
+189300990211     C                     ENDIF
+189400990211      *
+189500990128     C                     ENDSR
+189600990128      *----------------------------------------------------------------
+189700990128      * Create inventory sales transaction.
+189800990128      *----------------------------------------------------------------
+189900990128     C           UPINVT    BEGSR
+190000990128      *
+190100990128      * Write fields for inventory sales transaction record.
+190200000728     C                     MOVELXJCOMP    CCOMP
+190300000728     C                     MOVELXJWHSE    CWHSE
+190400000728     C                     MOVELXKPROD    CPROD
+190500990128     C                     MOVEL*BLANKS   CSUBCF
+190600990128     C                     MOVEL*BLANKS   CSUBCT
+190700990128     C                     MOVEL*BLANKS   CVTYP
+190800000728     C                     MOVELXKSERC    CSERC
+190900000728     C                     Z-ADDXKSERF    CSERNF
+191000990128     C                     Z-ADD0         CELEMF
+191100000728     C                     Z-ADDXKSERT    CSERNT
+191200990128     C                     Z-ADD0         CELEMT
+191300000728     C                     Z-ADDXKQTYN    CQTYN
+191400990128     C                     Z-ADD0         CBATC
+191500000728BL   C                     MOVELXJSORD    CDELN     P
+191600990128     C                     MOVEL*BLANKS   CREAS
+191700990128     C                     Z-ADDCYMD      CTDAT
+191800990218BL   C                     MOVELMTTYP     CTYPE
+191900990128     C                     MOVEL*BLANKS   CSUPP
+192000000728     C                     MOVELXJCUST    CCUST
+192100990128     C                     MOVEL*BLANKS   CAREA
+192200990128     C                     MOVEL*BLANKS   CAISL
+192300990128     C                     MOVEL*BLANKS   CBAYR
+192400990128     C                     MOVEL*BLANKS   CLEVL
+192500990128     C                     MOVEL*BLANKS   CINVN
+192600990128     C                     Z-ADDCYMD      CCRTD
+192700000728     C                     Z-ADDXXTME     CCRTT
+192800000728     C                     MOVELXJOBNO    CCRTS
+192900000728     C                     MOVELXUSRID    CCRTU
+193000000728     C                     MOVELXPGMID    CCRTP
+193100990128     C                     MOVEL*BLANK    CDELT
+193200990128      *
+193300990128      * Write inventory sales transaction record.
+193400990128     C                     WRITEHSFINVT
+193500990128     C                     ENDSR
+193600990128      *
+193700990107      *----------------------------------------------------------------
+193800990122      * VALIDH - Validate header screen.
+193900990107      *----------------------------------------------------------------
+194000990107      *
+194100990122     C           VALIDH    BEGSR
+194200990108      *
+194300990111      * Screen Header validation:
+194400990114      *
+194500990125      * Reset work values.
+194600000728     C                     RESETXERROR
+194700990125     C                     MOVE *OFF      *IN61            Hide F10/F11
+194800990125      *
+194900990125      * Reset error indicators.
+195000000728     C                     MOVEAXZEROS    *IN,30
+195100990125      *
+195200990125      * Validate that Order Type is a valid Type.
+195300000728     C           XJTYPE    CHAINHSLORDPA             99
+195400990125     C           *IN99     IFEQ *ON
+195500990125     C                     MOVE *ON       *IN30
+195600000728     C                     MOVE XYES      XERROR
+195700990125     C                     MOVEL'HSV2001' P0MSID
+195800000728     C                     EXSR YSNDMG
+195900990125     C                     ENDIF
+196000990125      *
+196100990125      * Validate that Company is valid.
+196200000728     C           XJCOMP    IFNE *BLANKS
+196300000728     C           XJCOMP    CHAINHSLCOMPA             99
+196400990125     C           *IN99     IFEQ *ON
+196500990125     C                     MOVE *ON       *IN31
+196600000728     C                     MOVE XYES      XERROR
+196700990125     C                     MOVEL'HSV2002' P0MSID
+196800000728     C                     EXSR YSNDMG
+196900990125     C                     ENDIF
+197000990125     C                     ENDIF
+197100990125      *
+197200990125      * Validate that Warehouse is valid.
+197300000728     C           XJWHSE    IFNE *BLANKS
+197400000728     C           XJWHSE    CHAINHSLWHSEA             99
+197500990125     C           *IN99     IFEQ *ON
+197600990125     C                     MOVE *ON       *IN32
+197700000728     C                     MOVE XYES      XERROR
+197800990125     C                     MOVEL'HSV0006' P0MSID
+197900000728     C                     EXSR YSNDMG
+198000990125     C                     ENDIF
+198100990125     C                     ENDIF
+198200990125      *
+198300990125      * Validate Post Code
+198400000728XXX  C           XJCUST    IFEQ *BLANKS
+198500000728     C           XJPCDE    IFNE *BLANKS
+198600000728     C           XJPCDE    CHAINHSLCUSTB             99
+198700990125     C           *IN99     IFEQ *ON
+198800990125     C                     MOVE *ON       *IN33
+198900000728     C                     MOVE XYES      XERROR
+199000990125     C                     MOVEL'HSV2003' P0MSID
+199100000728     C                     EXSR YSNDMG
+199200990125     C                     ENDIF
+199300990125      *
+199400990125      * If Customer is found
+199500990125     C           *IN99     IFEQ *OFF
+199600990125      * ...load Customer record into screen fields.
+199700000728XXXM C                     MOVELENAM1     XJNAM1           Name 1
+199800000728XXXM C                     MOVELENAM2     XJNAM2           Name 2
+199900000728XXXM C                     MOVELEADR1     XJADR1           Address 1
+200000000728XXXM C                     MOVELEADR2     XJADR2           Address 2
+200100000728XXXM C                     MOVE ECUST     XJCUST           Cust No.
+200200000728XXX  C                     MOVE ECLIM     XJCLIM 150       Credit Limit
+200300000728XXX  C                     MOVE ETYSL     XJTYSL 205       Last Year Sales
+200400990225XXX  C                     ENDIF
+200500990125      *
+200600990125     C                     ENDIF
+200700990126     C                     ENDIF
+200800990125      *
+200900990125      * Validate Customer Number
+201000000728XXXD C*          #JCUST    IFNE *BLANKS
+201100000728     C           XJCUST    CHAINHSLCUSTA             99
+201200990125     C           *IN99     IFEQ *ON
+201300990125     C                     MOVE *ON       *IN34
+201400000728     C                     MOVE XYES      XERROR
+201500990125     C                     MOVEL'HSV2004' P0MSID
+201600000728     C                     EXSR YSNDMG
+201700990125     C                     ENDIF
+201800990125      *
+201900990125      * If Customer is found
+202000990125     C           *IN99     IFEQ *OFF
+202100990125      * ...load Customer record into screen fields.
+202200000728XXXM C                     MOVELENAM1     XJNAM1           Name 1
+202300000728XXXM C                     MOVELENAM2     XJNAM2           Name 2
+202400000728XXXM C                     MOVELEADR1     XJADR1           Address 1
+202500000728XXXM C                     MOVELEADR2     XJADR2           Address 2
+202600000728XXXM C                     MOVE EPCDE     XJPCDE           Post Code
+202700000728XXX  C                     MOVE ECLIM     XJCLIM 150       Credit Limit
+202800000728XXX  C                     MOVE ETYSL     XJTYSL 205       Last Year Sales
+202900990225XXX   *
+203000990225XXX   * Check customer's credit rating allows order entry......
+203100990225XXX  C           ECRAT     IFEQ '01 '
+203200990225XXX  C                     MOVE *ON       *IN34
+203300000728XXX  C                     MOVE XYES      XERROR
+203400990225XXX  C                     MOVEL'HSV2018' P0MSID
+203500000728XXX  C                     EXSR YSNDMG
+203600990225XXX  C                     ENDIF
+203700990205      *
+203800990205     C                     ENDIF
+203900990225XXXD C*                    ENDIF
+204000990205      *
+204100990205      * Maximum discount is 40%
+204200000728     C           XJDISP    IFGT 40
+204300990205     C                     MOVE *ON       *IN36
+204400000728     C                     MOVE XYES      XERROR
+204500990205     C                     MOVEL'HSV0142' P0MSID
+204600000728     C                     EXSR YSNDMG
+204700990205     C                     ENDIF
+204800990215      *
+204900990128      * Check order date
+205000000728     C           XJORDD    IFEQ 0
+205100000728     C                     EXSR YDATEC
+205200990125     C                     ELSE
+205300990215      *
+205400990215      * a) Check for leap year and adjust number of days in February
+205500990215      *    in Days in Month array.
+205600990215     C           JYY       DIV  4         REM     40
+205700990215     C           REM       IFEQ 0
+205800990215     C                     MOVEL'Y'       LEAP    1
+205900990215     C                     ELSE
+206000990215     C                     MOVEL' '       LEAP
+206100990215     C                     ENDIF
+206200990215     C                     SELEC
+206300990215     C           LEAP      WHEQ ' '
+206400990215     C                     MOVEA28        DIM,2
+206500990215     C           LEAP      WHEQ 'Y'
+206600990215     C                     MOVEA29        DIM,2
+206700990215     C                     ENDSL
+206800990126      * Day
+206900990126     C           JDD       IFGT 31
+207000990126     C           JDD       ORLT 01
+207100990126      * Month
+207200990125     C           JMM       ORGT 12
+207300990126     C           JMM       ORLT 01
+207400990215      *
+207500990215      * If date error found...
+207600990215     C                     MOVE *ON       *IN35
+207700000728     C                     MOVE XYES      XERROR
+207800990215     C                     MOVEL'HSV2005' P0MSID
+207900000728     C                     EXSR YSNDMG
+208000990215     C                     ENDIF
+208100990215      *
+208200990215      * Validate Day within month.
+208300990215     C                     Z-ADDJMM       M       20
+208400990215     C           JDD       IFLT 1
+208500990215     C           JMM       ORGE 1
+208600990215     C           JMM       ANDLE12
+208700990215     C           JDD       ANDGTDIM,M
+208800990128      *
+208900990128      * If date error found...
+209000990125     C                     MOVE *ON       *IN35
+209100000728     C                     MOVE XYES      XERROR
+209200990125     C                     MOVEL'HSV2005' P0MSID
+209300000728     C                     EXSR YSNDMG
+209400990125     C                     ENDIF
+209500990125     C                     ENDIF
+209600990125      *
+209700990128      * If no errors found...
+209800000728     C           XERROR    IFEQ XNO
+209900990125      * ...display "Data valid.Press F10 to update" message...
+210000990125     C                     MOVEL'HSV9006' P0MSID
+210100000728     C                     EXSR YSNDMG
+210200990125      * ...activate F10 key (*IN61=*ON).
+210300990302     C                     MOVE *ON       *IN61
+210400990125     C                     ENDIF
+210500990125      *
+210600990107     C                     ENDSR
+210700990125      *
+210800990125      *----------------------------------------------------------------
+210900000728      * @DATEC - Date Check Routine
+211000990125      *----------------------------------------------------------------
+211100990125      *
+211200000728     C           YDATEC    BEGSR
+211300990125      *
+211400990128      * Convert six-digit system date to eight digits, with century.
+211500990125     C                     MOVELUDAY      DD
+211600990125     C                     MOVELUMONTH    MM
+211700990125     C                     MOVELUYEAR     YY
+211800990125     C           YY        IFGT 80
+211900990125     C                     Z-ADD19        CC
+212000990125     C                     ELSE
+212100990125     C                     Z-ADD20        CC
+212200990125     C                     ENDIF
+212300990223     C                     MOVELCC        CCYY    40
+212400990223     C                     MOVE YY        CCYY
+212500990128      *
+212600990128      * Set default date for order entry.
+212700000728     C           XJORDD    IFEQ 0
+212800000728     C                     Z-ADDDMCY      XJORDD
+212900990125     C                     ENDIF
+213000990128      *
+213100990128      * Set date for transaction audit field.
+213200990128     C                     Z-ADDDD        DDD
+213300990128     C                     Z-ADDMM        MMM
+213400990128     C                     Z-ADDCC        CCC
+213500990128     C                     Z-ADDYY        YYY
+213600990125     C                     ENDSR
+213700990125      *
+213800990115      *----------------------------------------------------------------
+213900000728      * @SERCH - F4 prompt control.
+214000990115      *----------------------------------------------------------------
+214100990115      *
+214200000728     C           YSERCH    BEGSR
+214300990115      *
+214400990115      * Check that cursor is in a valid field for prompting.
+214500990126     C           CSRRCD    IFEQ 'HSS200A'
+214600000728     C           CSRFLD    ANDEQ'XJCUST'
+214700990125     C           CSRRCD    OREQ 'HSS200A'
+214800000728     C           CSRFLD    ANDEQ'XJTYPE'
+214900990126     C           CSRRCD    OREQ 'HSS200A'
+215000000728     C           CSRFLD    ANDEQ'XJCOMP'
+215100990125     C           CSRRCD    OREQ 'HSS200A'
+215200000728     C           CSRFLD    ANDEQ'XJWHSE'
+215300990126     C           CSRRCD    OREQ 'HSS200A'
+215400000728     C           CSRFLD    ANDEQ'XJPCDE'
+215500990127     C           CSRRCD    OREQ 'HSS200C'
+215600000728     C           CSRFLD    ANDEQ'XKPROD'
+215700990126      *
+215800990119      * Move appropriate data to parameter fields depending upon search
+215900990119      * field chosen.
+216000990119     C                     SELEC
+216100990119      *
+216200990119      * Customer No.
+216300000728     C           CSRFLD    WHEQ 'XJCUST'
+216400000728     C                     MOVEL'HSLCUSTA'FILEY     P
+216500000728     C                     MOVEL'ENAM1'   NAMEY     P
+216600000728     C                     MOVEL'ECUST'   NUMBRY    P
+216700990125      *
+216800990125      * Post Code
+216900000728     C           CSRFLD    WHEQ 'XJPCDE'
+217000000728     C                     MOVEL'HSLCUSTB'FILEY     P
+217100000728     C                     MOVEL'ENAM1'   NAMEY     P
+217200000728     C                     MOVEL'EPCDE'   NUMBRY    P
+217300990119      *
+217400990125      * Order Type.
+217500000728     C           CSRFLD    WHEQ 'XJTYPE'
+217600000728     C                     MOVEL'HSLORDPA'FILEY     P
+217700000728     C                     MOVEL'MODES'   NAMEY     P
+217800000728     C                     MOVEL'MOTYP'   NUMBRY    P
+217900990119      *
+218000990125      * Company Code
+218100000728     C           CSRFLD    WHEQ 'XJCOMP'
+218200000728     C                     MOVEL'HSLCOMPA'FILEY     P
+218300000728     C                     MOVEL'WODES'   NAMEY     P
+218400000728     C                     MOVEL'WCOMP'   NUMBRY    P
+218500990126      *
+218600990126      * Warehouse Code
+218700000728     C           CSRFLD    WHEQ 'XJWHSE'
+218800000728     C                     MOVEL'HSLWHSEA'FILEY     P
+218900000728     C                     MOVEL'PODES'   NAMEY     P
+219000000728     C                     MOVEL'PWHSE'   NUMBRY    P
+219100990125      *
+219200990126      * Product Code
+219300000728     C           CSRFLD    WHEQ 'XKPROD'
+219400000728     C                     MOVEL'HSLPRODA'FILEY     P
+219500000728     C                     MOVEL'NDESC'   NAMEY     P
+219600000728     C                     MOVEL'NPROD'   NUMBRY    P
+219700990125      *
+219800990119     C                     ENDSL
+219900990115      *
+220000990115      * Call system window program to retrieve data.  If Return Code is
+220100990115      * *OFF then load retrieved data into screen fields.
+220200000728     C                     Z-ADD10        LINY
+220300000728     C                     Z-ADD8         COLY
+220400990115     C                     CALL 'HSR341'  PL341
+220500990119      *
+220600990119      * If Return Code is *OFF then load retrieved data into
+220700990119      * appropriate screen fields.
+220800000728     C           YRTNC     IFEQ *OFF                       ..If2
+220900990119      *
+221000990119     C                     SELEC
+221100990119      *
+221200990119      * Customer No.
+221300000728     C           CSRFLD    WHEQ 'XJCUST'
+221400000728     C                     MOVELYNUMBR    XJCUST    P
+221500990125      *
+221600990125      * Post Code
+221700000728     C           CSRFLD    WHEQ 'XJPCDE'
+221800000728     C                     MOVELYNUMBR    XJPCDE    P
+221900990119      *
+222000990119      * Customer Type.
+222100000728     C           CSRFLD    WHEQ 'XJTYPE'
+222200000728     C                     MOVELYNUMBR    XJTYPE    P
+222300990125      *
+222400990125      * Company Code
+222500000728     C           CSRFLD    WHEQ 'XJCOMP'
+222600000728     C                     MOVELYNUMBR    XJCOMP    P
+222700990125      *
+222800990125      * Warehouse Code
+222900000728     C           CSRFLD    WHEQ 'XJWHSE'
+223000000728     C                     MOVELYNUMBR    XJWHSE    P
+223100990126      *
+223200990126      * Product Code
+223300000728     C           CSRFLD    WHEQ 'XKPROD'
+223400000728     C                     MOVELYNUMBR    XKPROD    P
+223500990119      *
+223600990119     C                     ENDSL
+223700990121     C                     ENDIF                           ..EndIf2
+223800990115      *
+223900990119      * otherwise cursor is in wrong format/field so display message.
+224000990121     C                     ELSE                            .ElseIf1
+224100990115     C                     MOVEL'HSV9009' P0MSID
+224200000728     C                     EXSR YSNDMG
+224300990119     C                     ENDIF                           .EndIf1
+224400990115      *
+224500990115     C                     ENDSR
+224600990106      *
+224700990127      *----------------------------------------------------------------
+224800000728      * @SERSF - F4 prompt control for order detail subfile.
+224900990127      *----------------------------------------------------------------
+225000990127      *
+225100000728     C           YSERSF    BEGSR
+225200990127      * Clear row / column control.
+225300990127     C                     Z-ADD0         CSRROW
+225400990127     C                     Z-ADD0         CSRCOL
+225500990127      *
+225600990127      * Retrieve the current cursor position.
+225700990127     C           CSRLOC    DIV  256       ROW     20
+225800990127     C                     MVR            COL     20
+225900990127     C                     Z-ADDROW       CSRROW
+226000990127     C                     Z-ADDCOL       CSRCOL
+226100990127      *
+226200990127      * Execute search.
+226300000728     C                     EXSR YSERCH
+226400990127      *
+226500990127      * Flag subfile record to return value.
+226600990127     C           CSRRRN    CHAINHSS200C              99
+226700990127     C           *IN99     IFEQ *OFF
+226800990127     C                     MOVEL*ON       *IN37
+226900000728XXX  C           YNUMBR    IFNE *BLANKS
+227000000728     C                     MOVELYNUMBR    XKPROD    P
+227100990225XXX  C                     ENDIF
+227200990127     C                     UPDATHSS200C
+227300990127     C                     MOVEL*OFF      *IN37
+227400990127     C                     ENDIF
+227500990127     C                     ENDSR
+227600990127      *
+227700990106      *----------------------------------------------------------------
+227800000728      * @SNDMG - Send message to this program's MSGQ.
+227900990106      *----------------------------------------------------------------
+228000990106      *
+228100000728     C           YSNDMG    BEGSR
+228200990106      *
+228300990107     C                     CALL 'SNDMSGC'
+228400990106     C                     PARM           P0PGMQ           Program queue
+228500990106     C                     PARM           P0PGRL           Rel queue
+228600990106     C                     PARM           P0MSID           Message ID
+228700990106     C                     PARM           P0MSGF           Message file
+228800990106     C                     PARM           P0MSDA           Message data
+228900990106     C                     PARM           P0MSTP           Message type
+229000990106      *
+229100990106     C                     ENDSR
+229200990106      *
+229300990106      *----------------------------------------------------------------
+229400000728      * @CLRMG - Clear message(s) from this program's MSGQ.
+229500990106      *----------------------------------------------------------------
+229600990106      *
+229700000728     C           YCLRMG    BEGSR
+229800990106      *
+229900990107     C                     CALL 'RMVMSGC'
+230000990106      *
+230100990106     C                     ENDSR
+230200990106      *
+230300990223      *----------------------------------------------------------------
+230400990223      * *UPPVCT- Update the voucher control
+230500990223      *----------------------------------------------------------------
+230600990223      *
+230700990223     C           UPPVCT    BEGSR
+230800990225     C                     Z-ADD1         RRNQ
+230900990225     C           RRNQ      CHAINHSS200C              97
+231000990223     C           *IN97     DOWEQ*OFF
+231100990223      *
+231200990225     C                     ADD  1         RRNQ
+231300000728     C           XSELC     IFNE *BLANK
+231400000728     C           XKPROD    ORNE *BLANK
+231500000728     C           XNDESC    ORNE *BLANK
+231600000728     C           XKPRIC    ORNE *ZEROS
+231700000728     C           XKQTYN    ORNE *ZEROS
+231800000728     C           XKVALU    ORNE *ZEROS
+231900000728     C           XKVATA    ORNE *ZEROS
+232000000728     C           XKSERC    ORNE *BLANKS
+232100000728     C           XKSERF    ORNE *ZEROS
+232200000728     C           XKSERT    ORNE *ZEROS
+232300000728     C                     MOVE XKSERC    WKSERC
+232400000728     C                     MOVE XKSERT    TEMP    90
+232500990223     C                     ADD  1         TEMP
+232600990223     C           VCHKEY    SETLLHSLVCTLA
+232700000728     C           XKPROD    READEHSLVCTLA                 92
+232800990223     C                     MOVE TEMP      BSERNN
+232900990223     C                     UPDATHSFVCTL
+233000990223     C                     ENDIF
+233100990223      *
+233200990225     C           RRNQ      IFEQ 100
+233300990223     C                     LEAVE
+233400990223     C                     ENDIF
+233500990225     C           RRNQ      CHAINHSS200C              97
+233600990223     C                     ENDDO
+233700990223     C                     ENDSR
+233800990223      *
+233900990106      *----------------------------------------------------------------
+234000990106      * *INZSR - Initialization.
+234100990106      *----------------------------------------------------------------
+234200990106      *
+234300990106     C           *INZSR    BEGSR
+234400990217BL    *
+234500990217BL    * Dummy read to open file.
+234600990217BL   C                     READ HSPINVT                  99
+234700990222BL   C                     UPDATHSFINVT
+234800990302     C                     OPEN HSLEXPAA
+234900990302BL   C                     READ HSLEXPAA                 99
+235000990302     C                     CLOSEHSLEXPAA
+235100990127      *
+235200990106      * Key lists.
+235300990128      * Key List for Voucher Control.
+235400990127     C           VCHKEY    KLIST
+235500000728     C                     KFLD           XKPROD
+235600990128     C                     KFLD           WKSERC
+235700990223      *
+235800990223      * Key List for Voucher Cross-Reference.
+235900990223     C           KEYXRF    KLIST
+236000990223     C                     KFLD           CCYY
+236100000728     C                     KFLD           XJCUST
+236200000728     C                     KFLD           XKPROD
+236300990205      *
+236400990211      * Key List for Sales Order.
+236500990211     C           KEYOLN    KLIST
+236600000728     C                     KFLD           XJSORD
+236700000728     C                     KFLD           XOLIN
+236800990211      *
+236900990205      * Key List for Inventory Masterfile.
+237000990205     C           IVMKEY    KLIST
+237100000728     C                     KFLD           XKPROD
+237200990205     C                     KFLD           WKSUBC
+237300990205     C                     MOVE *BLANKS   WKSUBC
+237400990115      *
+237500990128      * Key List for Voucher Tracking.
+237600990128     C           TRCKEY    KLIST
+237700000728     C                     KFLD           XKPROD
+237800000728     C                     KFLD           XKSERC
+237900000728     C                     KFLD           XKSERF
+238000990215      *
+238100990301      * Key List for Customer Discount File.
+238200990215     C           DSCKEY    KLIST
+238300990215     C                     KFLD           ECTYP
+238400990215     C                     KFLD           PFAMT
+238500990128      *
+238600990115      * Parameter Lists.
+238700990203      * Entry parameter list.
+238800990203     C           *ENTRY    PLIST
+238900000728     C                     PARM           YMODE   1        Mode
+239000000728     C                     PARM           YORDNO  8        Sales Order No.
+239100000728     C                     PARM           YTYPE   3        Order Type
+239200000728     C                     PARM           YCUST   8        Customer No.
+239300990203      *
+239400990115      * List for Call to HSR341 - Search program.
+239500990115     C           PL341     PLIST
+239600000728     C                     PARM           YRTNC   1
+239700000728     C                     PARM           YNUMBR 15
+239800000728     C                     PARM           FILEY  10
+239900000728     C                     PARM           NAMEY   6
+240000000728     C                     PARM           NUMBRY  6
+240100000728     C                     PARM           LINY    30
+240200000728     C                     PARM           COLY    30
+240300990127      *
+240400990127      * Field definitions
+240500000728     C           *LIKE     DEFN XKVALU    WKTOTV
+240600000728     C           *LIKE     DEFN XKSERC    WKSERC
+240700990128     C           *LIKE     DEFN BSERNN    WKSERN
+240800000728     C           *LIKE     DEFN XKQTYN    WKQTYN
+240900990211     C           *LIKE     DEFN DSUBC     WKSUBC
+241000000728     C           *LIKE     DEFN XNO       WKRANG
+241100000728     C           *LIKE     DEFN XNO       WKVCTL
+241200000728     C           *LIKE     DEFN XNO       UPDAT
+241300990106      *
+241400990106      * Variable declarations.
+241500000728     C                     MOVE '0'       XNO     1
+241600000728     C                     MOVE '1'       XYES    1
+241700000728     C                     MOVE XNO       XERROR  1
+241800000728     C                     MOVE XNO       XUPDAT  1
+241900000728     C                     MOVE XNO       XDELET  1
+242000990217BL   C                     MOVEL*BLANKS   ORDPRM  8
+242100990126     C                     Z-ADD1         RCDNBR
+242200000728     C                     Z-ADD0         RRNX    50
+242300990211     C                     Z-ADD0         RRNVAL  50
+242400990225     C                     Z-ADD0         RRNLIN  50
+242500990225     C                     Z-ADD0         RRNQ    50
+242600990225     C                     Z-ADD0         RRNP    50
+242700990106      *
+242800990106      * Prepare message subfile.
+242900990106     C                     MOVE *ON       *IN79
+243000000728     C                     MOVE XPGMID    P0PGMQ 10        Program queu
+243100990111     C                     MOVEL'*PRV'    P0PGRL  5        Rel queue
+243200990106     C                     MOVE *BLANKS   P0MSID  7        Message ID
+243300990106     C                     MOVEL'HSM001'  P0MSGF 10        Message file
+243400990106     C                     MOVE *BLANKS   P0MSDA132        Message data
+243500990106     C                     MOVEL'*INFO'   P0MSTP  7        Message type
+243600990204      *
+243700000728     C                     EXSR YDATEC
+243800990106      *
+243900990106     C                     ENDSR
+244000990215** Days in Month array DIM.
+244100990215312831303130313130313031
